@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 PROJECT(bgfx-simple-app LANGUAGES CXX C)
 
-set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bgfx)
-set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bimg)
-set(BX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bx)
+set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../bgfx)
+set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../bimg)
+set(BX_DIR ${CMAKE_SOURCE_DIR}/../bx)
 set(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
