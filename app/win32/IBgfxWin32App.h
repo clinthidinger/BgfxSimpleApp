@@ -22,7 +22,7 @@ public:
     virtual void setRefeshFunc( const std::function<void()> &refreshFunc ) = 0;
     virtual void setAutoRefeshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;
     
-    virtual void render( int width, int height, float scaleFactor ) = 0;
+    virtual void render() = 0;
     virtual void resize( int width, int height, float scaleFactor ) = 0;
     virtual void update() = 0;
     virtual void shutdown() = 0;

@@ -19,7 +19,7 @@ public:
     BgfxSimpleApp() = default;
     ~BgfxSimpleApp() override;
     void init( int width, int height, float scaleFactor, void* nwh, void* device ) override;
-    void render( int width, int height, float scaleFactor ) override;
+    void render() override;
     void resize( int width, int height, float scaleFactor ) override;
     void update() override;
     void shutdown()  override;

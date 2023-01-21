@@ -21,6 +21,8 @@
 
 void BgfxSimpleApp::init( int width, int height, float scaleFactor, void *nwh, void *device )
 {
+    mWidth = width;
+    mHeight = height;
     assert( width != 0 && height != 0 );
     bgfx::PlatformData platformData;
     platformData.ndt = nullptr;
@@ -67,9 +69,9 @@ BgfxSimpleApp::~BgfxSimpleApp()
     shutdown();
 }
 
-void BgfxSimpleApp::render( int width, int height, float scaleFactor )
+void BgfxSimpleApp::render()
 {
-    bgfx::setViewRect( mDefaultViewId, 0, 0, uint16_t( width ), uint16_t( height ) );
+    bgfx::setViewRect( mDefaultViewId, 0, 0, uint16_t( mWidth ), uint16_t( mHeight ) );
 
     // This dummy draw call is here to make sure that view 0 is cleared
     bgfx::touch( mDefaultViewId );
@@ -104,6 +106,8 @@ void BgfxSimpleApp::shutdown()
 
 void BgfxSimpleApp::resize( int width, int height, float scaleFactor )
 {
+    mWidth = width;
+    mHeight = height;
     std::cerr << "resize: " << width << ", " << height << ", " << scaleFactor << "\n";
 }
 

@@ -127,7 +127,7 @@ LRESULT CALLBACK Win32Application::WindowProc( HWND hWnd, UINT message, WPARAM w
              // TODO: Add any drawing code that uses hdc here...
             //bgfxUpdate();
             mApp->update();
-            mApp->render( mApp->getWidth(), mApp->getHeight(), 1.0f );
+            mApp->render();
             //bgfx::renderFrame();
             //EndPaint( hWnd, &ps );
             if ( !mApp->enableAutoRefresh() )
