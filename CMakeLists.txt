@@ -29,9 +29,9 @@ set(BGFX_INCLUDE_DIRS
 )
 if(WIN32)
 	set(BGFX_LIBS
-		${BGFX_LIB_DIR}/bgfx$<$<CONFIG:Debug>:Debug>.lib
-		${BGFX_LIB_DIR}/bimg$<$<CONFIG:Debug>:Debug>.lib
-		${BGFX_LIB_DIR}/bx$<$<CONFIG:Debug>:Debug>.lib
+		${BGFX_LIB_DIR}/bgfx$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
+		${BGFX_LIB_DIR}/bimg$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
+		${BGFX_LIB_DIR}/bx$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
 	)
 	set(BGFX_INCLUDE_DIRS ${BGFX_INCLUDE_DIRS} ${BX_DIR}/include/compat/msvc)
 endif(WIN32)
