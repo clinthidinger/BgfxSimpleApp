@@ -161,12 +161,6 @@ LRESULT CALLBACK Win32Application::WindowProc( HWND hWnd, UINT message, WPARAM w
         }
         case WM_DESTROY:
         {
-#ifdef TABLET_APP
-            mTablet->close();
-            mTablet.reset();
-            WinTablet::unload();
-#endif
-            //Called in destructor: mApp.shutdown();
             mApp.reset();
             PostQuitMessage( 0 ); // this triggers the WM_QUIT to break the loop
             break;
