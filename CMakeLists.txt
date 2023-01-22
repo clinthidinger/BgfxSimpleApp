@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 PROJECT(bgfx-simple-app LANGUAGES CXX C)
 
+option(ENABLE_IMGUI "Enable DearImGui" on)
+option(ENABLE_NANOVG "Enable nanoVG" on)
 set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../bgfx)
 set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../bimg)
 set(BX_DIR ${CMAKE_SOURCE_DIR}/../bx)
-set(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin)
+set(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin) # NOTE: Should be full path.
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++17)
@@ -20,6 +22,107 @@ if(WIN32)
 	string(REPLACE "MDd" "MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 	string(REPLACE "MD" "MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 endif(WIN32)
+
+if(ENABLE_IMGUI)
+	set(IMGUI_SRC
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/color_picker.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/color_picker.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/color_wheel.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/color_wheel.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/dock.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/dock.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/file_list.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/file_list.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/gizmo.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/gizmo.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/markdown.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/markdown.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/range_slider.h
+		${BGFX_DIR}/3rdparty/dear-imgui/widgets/range_slider.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/imconfig.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui.cpp
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_demo.cpp
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_draw.cpp
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_internal.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_tables.cpp
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_user.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_user.inl
+		${BGFX_DIR}/3rdparty/dear-imgui/imgui_widgets.cpp
+		${BGFX_DIR}/3rdparty/dear-imgui/imstb_rectpack.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imstb_textedit.h
+		${BGFX_DIR}/3rdparty/dear-imgui/imstb_truetype.h
+	)
+	set(BGFX_DEBUGDRAW_SRC
+		${BGFX_DIR}/examples/common/debugdraw/debugdraw.cpp
+		${BGFX_DIR}/examples/common/debugdraw/debugdraw.h
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill.bin.h          
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill.sc             
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill_lit.bin.h      
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill_lit.sc         
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill_texture.bin.h  
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_fill_texture.sc     
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_lines.bin.h         
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_lines.sc
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_lines_stipple.bin.h  
+		${BGFX_DIR}/examples/common/debugdraw/fs_debugdraw_lines_stipple.sc     
+		${BGFX_DIR}/examples/common/debugdraw/varying.def.sc                    
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill.bin.h           
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill.sc              
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_lit.bin.h       
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_lit.sc          
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_lit_mesh.bin.h
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_lit_mesh.sc
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_mesh.bin.h
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_mesh.sc
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_texture.bin.h
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_fill_texture.sc
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_lines.bin.h
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_lines.sc
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_lines_stipple.bin.h
+		${BGFX_DIR}/examples/common/debugdraw/vs_debugdraw_lines_stipple.sc
+	)
+
+	set(BGFX_COMMON_SRC
+		${BGFX_DIR}/examples/common/bgfx_utils.h
+		${BGFX_DIR}/examples/common/common.h
+		${BGFX_DIR}/examples/common/packrect.h
+	)
+
+	set(BGFX_COMMON_IMGUI_SRC
+		${BGFX_DIR}/examples/common/imgui/imgui.cpp
+		${BGFX_DIR}/examples/common/imgui/imgui.h
+		${BGFX_DIR}/examples/common/imgui/droidsans.ttf.h 
+		${BGFX_DIR}/examples/common/imgui/fs_imgui_image.bin.h
+		${BGFX_DIR}/examples/common/imgui/fs_imgui_image.sc       
+		${BGFX_DIR}/examples/common/imgui/fs_ocornut_imgui.bin.h  
+		${BGFX_DIR}/examples/common/imgui/fs_ocornut_imgui.sc     
+		${BGFX_DIR}/examples/common/imgui/icons_font_awesome.ttf.h  
+		${BGFX_DIR}/examples/common/imgui/icons_kenney.ttf.h        
+		${BGFX_DIR}/examples/common/imgui/roboto_regular.ttf.h            
+		${BGFX_DIR}/examples/common/imgui/robotomono_regular.ttf.h  
+		${BGFX_DIR}/examples/common/imgui/varying.def.sc
+		${BGFX_DIR}/examples/common/imgui/vs_imgui_image.bin.h
+		${BGFX_DIR}/examples/common/imgui/vs_imgui_image.sc
+		${BGFX_DIR}/examples/common/imgui/vs_ocornut_imgui.bin.h
+		${BGFX_DIR}/examples/common/imgui/vs_ocornut_imgui.sc
+	)
+endif(ENABLE_IMGUI)
+
+if(ENABLE_NANOVG)
+	set(NANOVG_SRC
+		${BGFX_DIR}/examples/common/nanovg/fontstash.h      
+		${BGFX_DIR}/examples/common/nanovg/fs_nanovg_fill.bin.h
+		${BGFX_DIR}/examples/common/nanovg/fs_nanovg_fill.sc
+		${BGFX_DIR}/examples/common/nanovg/nanovg_bgfx.cpp
+		${BGFX_DIR}/examples/common/nanovg/nanovg_bgfx.h
+		${BGFX_DIR}/examples/common/nanovg/nanovg.cpp
+		${BGFX_DIR}/examples/common/nanovg/nanovg.h
+		${BGFX_DIR}/examples/common/nanovg/vs_nanovg_fill.bin.h
+		${BGFX_DIR}/examples/common/nanovg/vs_nanovg_fill.sc
+		${BGFX_DIR}/examples/common/nanovg/varying.def.sc
+	)
+endif(ENABLE_NANOVG)
 
 set(BGFX_INCLUDE_DIRS
 	${BGFX_DIR}/include
@@ -48,19 +151,40 @@ if(WIN32)
 	)
 endif(WIN32)
 
-function(makeGroups fileList)
+function(makeGroups fileList baseDir)
 	foreach(FILE ${fileList}) 
 	    # Get the directory of the source file
 	    get_filename_component(PARENT_DIR "${FILE}" DIRECTORY)
 	    # Remove common directory prefix to make the group
-	    string(REPLACE "${APP_PATH}" "" GROUP "${PARENT_DIR}")
+	    string(REPLACE "${baseDir}" "" GROUP "${PARENT_DIR}")
 	    # Make sure we are using windows slashes
 	    string(REPLACE "/" "\\" GROUP "${GROUP}")
 	    source_group("${GROUP}" FILES "${FILE}")
 	endforeach()
 endfunction()
 
-makeGroups("${SRC}")
+makeGroups("${SRC}" ${CMAKE_SOURCE_DIR})
+
+if(ENABLE_IMGUI)
+	makeGroups("${BGFX_COMMON_SRC}" ${BGFX_DIR}/examples)
+	makeGroups("${BGFX_COMMON_IMGUI_SRC}" ${BGFX_DIR}/examples)
+	makeGroups("${BGFX_DEBUGDRAW_SRC}" ${BGFX_DIR}/examples)
+	makeGroups("${IMGUI_SRC}" ${BGFX_DIR}/3rdparty)
+
+	set(SRC ${SRC}
+		${BGFX_COMMON_SRC}
+		${BGFX_COMMON_IMGUI_SRC}
+		${BGFX_DEBUGDRAW_SRC}
+		${IMGUI_SRC}
+	)
+endif(ENABLE_IMGUI)
+
+if(ENABLE_NANOVG)
+	makeGroups("${NANOVG_SRC}" ${BGFX_DIR}/examples)
+	set(SRC ${SRC}
+		${NANOVG_SRC}
+	)
+endif(ENABLE_NANOVG)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
@@ -69,9 +193,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS})
 
 if(WIN32)
-	target_compile_definitions(${PROJECT_NAME} PUBLIC /wd4201 /wd4324 /Ob2 /Zc:__cplusplus _UNICODE UNICODE -MT$<$<CONFIG:Debug>:d> /SUBSYSTEM:WINDOWS)
-	target_link_options(${PROJECT_NAME} PRIVATE "-mwindows" /SUBSYSTEM:WINDOWS /ignore:4221 /ignore:4199)
-	set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" )
+	target_compile_definitions(${PROJECT_NAME} PUBLIC /wd4201 /wd4324 /Ob2 /Zc:__cplusplus _UNICODE UNICODE -MT$<$<CONFIG:Debug>:d> /SUBSYSTEM:WINDOWS -DPRId64="I64d")
+	target_link_options(${PROJECT_NAME} PRIVATE /SUBSYSTEM:WINDOWS /ignore:4221 /ignore:4199)
+	set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 	message({CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_DEBUG})
 	message({CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS_DEBUG})
 endif(WIN32)
