@@ -4,15 +4,17 @@ PROJECT(bgfx-simple-app LANGUAGES CXX C)
 
 option(ENABLE_IMGUI "Enable DearImGui" on)
 option(ENABLE_NANOVG "Enable nanoVG" on)
-set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../bgfx)
-set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../bimg)
-set(BX_DIR ${CMAKE_SOURCE_DIR}/../bx)
-set(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin) # NOTE: Should be full path.
+set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bgfx)
+set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bimg)
+set(BX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bx)
+get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin ABSOLUTE)
+get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_vs2022/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
+set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++17)
 set(BX_CONFIG_DEBUG $<CONFIG:Debug>)
-
 
 if(WIN32)
 	add_compile_options( /wd4201 /wd4324 /Ob2 /Zc:__cplusplus)
@@ -200,3 +202,48 @@ if(WIN32)
 	message({CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_DEBUG})
 	message({CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS_DEBUG})
 endif(WIN32)
+
+if(WIN32)
+	set(SHADER_PLATFORM windows)
+	set(PROFILE s_5_0)
+elseif(APPLE)
+	set(SHADER_PLATFORM osx) # or ios
+	set(PROFILE metal)
+endif()
+
+file(GLOB VS_SHADER_SRC LIST_DIRECTORIES false ${SHADER_DIR}/vs_*.sc)
+file(GLOB FS_SHADER_SRC LIST_DIRECTORIES false ${SHADER_DIR}/fs_*.sc)
+file(GLOB CS_SHADER_SRC LIST_DIRECTORIES false ${SHADER_DIR}/cs_*.sc)
+
+function(addShaderCompileCommand fileList type)
+	foreach(SHADER_SRC_FILE IN LISTS fileList)
+		string(REGEX MATCH "^(.*)\\.[^.]*$" dummy ${SHADER_SRC_FILE})
+		set(S_SHADER_HDR_FILE ${CMAKE_MATCH_1}.h)
+		add_custom_command(
+			VERBATIM
+			OUTPUT  ${S_SHADER_HDR_FILE}
+			DEPENDS ${S_SHADER_SRC_FILE}
+			COMMAND ${SHADERC} --platform ${SHADER_PLATFORM} --profile ${PROFILE} --varyingdef ${SHADER_DIR}/varying.def.sc  -i ${BGFX_DIR}/examples/common -i ${BGFX_DIR}/src -f ${S_SHADER_SRC} -o ${S_SHADER_HDR_FILE} --bin2c --type ${type}
+			COMMENT "Compiling shader ${SHADER_SRC_FILE} with ${SHADERC}."
+		)
+		list(APPEND SHADER_HDR_FILES ${S_SHADER_HDR_FILE})
+	endforeach()
+endfunction()
+
+if(VS_SHADER_SRC)
+	addShaderCompileCommand(${VS_SHADER_SRC} v)
+endif(VS_SHADER_SRC)
+if(FS_SHADER_SRC)
+	addShaderCompileCommand(${FS_SHADER_SRC} f)
+endif(FS_SHADER_SRC)
+if(CS_SHADER_SRC)
+	addShaderCompileCommand(${CS_SHADER_SRC} v)
+endif(CS_SHADER_SRC)
+
+#message(${SHADER_HDR_FILES}......................{SHADER_HDR_FILES})
+add_custom_target(Shaders ALL DEPENDS ${SHADER_HDR_FILES} SOURCES ${VS_SHADER_SRC} ${FS_SHADER_SRC} ${CS_SHADER_SRC})
+makeGroups("${VS_SHADER_SRC}" ${CMAKE_SOURCE_DIR})
+makeGroups("${FS_SHADER_SRC}" ${CMAKE_SOURCE_DIR})
+makeGroups("${CS_SHADER_SRC}" ${CMAKE_SOURCE_DIR})
+
+add_dependencies(${PROJECT_NAME} Shaders)
