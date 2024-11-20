@@ -195,7 +195,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS})
 
 if(WIN32)
-	target_compile_definitions(${PROJECT_NAME} PUBLIC /wd4201 /wd4324 /Ob2 /Zc:__cplusplus _UNICODE UNICODE -MT$<$<CONFIG:Debug>:d> /SUBSYSTEM:WINDOWS -DPRId64="I64d")
+	target_compile_definitions(${PROJECT_NAME} PUBLIC _UNICODE UNICODE -DPRId64="I64d" -DPRIu64="I64u" NOMINMAX)
+	target_compile_options(${PROJECT_NAME} PRIVATE /wd4201 /wd4324 /wd4996 /Ob2 /Zc:preprocessor /Zc:__cplusplus /SUBSYSTEM:WINDOWS)
 	target_link_options(${PROJECT_NAME} PRIVATE /SUBSYSTEM:WINDOWS /ignore:4221 /ignore:4199)
 	set_property(TARGET ${PROJECT_NAME} PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
