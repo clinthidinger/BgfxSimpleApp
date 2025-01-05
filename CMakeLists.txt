@@ -4,11 +4,15 @@ PROJECT(bgfx-simple-app LANGUAGES CXX C)
 
 option(ENABLE_IMGUI "Enable DearImGui" on)
 option(ENABLE_NANOVG "Enable nanoVG" on)
+option(ENABLE_CINDER_LITE "Enable Cinder-Lite" on)
 set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bgfx)
 set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bimg)
 set(BX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bx)
-get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin ABSOLUTE)
-get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_vs2022/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
+#get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin ABSOLUTE)
+#get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_vs2022/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
+set(VS_VERSION vs2022)
+get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
+get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
 set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -143,7 +147,166 @@ endif(WIN32)
 
 #Shcore.lib?
 
-set(SRC src/BgfxSimpleApp.cpp src/BgfxSimpleApp.h app/IBgfxApp.h)
+set(CINDER_LITE_SRC
+	third_party/cinder/circular/circular.h
+	third_party/cinder/Area.h
+	third_party/cinder/Area.cpp
+	third_party/cinder/AxisAlignedBox.h
+	third_party/cinder/BandedMatrix.h
+	third_party/cinder/BandedMatrix.cpp
+	third_party/cinder/BreakPoint.h
+	third_party/cinder/BSpline.cpp
+	third_party/cinder/BSpline.h
+	third_party/cinder/BSplineFit.cpp
+	third_party/cinder/BSplineFit.h
+	third_party/cinder/Buffer.cpp
+	third_party/cinder/Buffer.h
+	third_party/cinder/Camera.h
+	third_party/cinder/CameraManager.h
+	third_party/cinder/Capture.cpp
+	third_party/cinder/Capture.h
+	third_party/cinder/CaptureImplAvFoundation.h
+	third_party/cinder/CaptureImplAvFoundation.mm
+	third_party/cinder/Channel.h
+	third_party/cinder/ChanTraits.h
+	third_party/cinder/Cinder.h
+	third_party/cinder/CinderAssert.cpp
+	third_party/cinder/CinderAssert.h
+	third_party/cinder/CinderFwd.h
+	third_party/cinder/CinderGlm.h
+	third_party/cinder/CinderMath.cpp
+	third_party/cinder/CinderMath.h
+	third_party/cinder/Color.cpp
+	third_party/cinder/Color.h
+	third_party/cinder/CurrentFunction.h
+	third_party/cinder/DataSource.cpp
+	third_party/cinder/DataSource.h
+	third_party/cinder/DataTarget.cpp
+	third_party/cinder/DataTarget.h
+	third_party/cinder/Easing.h
+	third_party/cinder/Exception.cpp
+	third_party/cinder/Exception.h
+	third_party/cinder/Export.h
+	third_party/cinder/Filesystem.h
+	third_party/cinder/Frustum.h
+	third_party/cinder/GeomIo.cpp
+	third_party/cinder/GeomIo.h
+	third_party/cinder/ImageIo.h
+	third_party/cinder/Log.cpp
+	third_party/cinder/Log.h
+	third_party/cinder/Matrix.cpp
+	third_party/cinder/Matrix.h
+	third_party/cinder/Matrix22.h
+	third_party/cinder/Matrix33.h
+	third_party/cinder/Matrix44.h
+	third_party/cinder/Noncopyable.h
+	third_party/cinder/Path2d.cpp
+	third_party/cinder/Path2d.h
+	third_party/cinder/Perlin.h
+	third_party/cinder/Plane.h
+	third_party/cinder/PolyLine.cpp
+	third_party/cinder/PolyLine.h
+	third_party/cinder/Quaternion.h
+	third_party/cinder/Rand.h
+	third_party/cinder/Ray.h
+	third_party/cinder/Rect.cpp
+	third_party/cinder/Rect.h
+	third_party/cinder/Shape2d.cpp
+	third_party/cinder/Shape2d.h
+	third_party/cinder/Signals.cpp
+	third_party/cinder/Signals.h
+	third_party/cinder/Sphere.h
+	third_party/cinder/Stream.cpp
+	third_party/cinder/Stream.h
+	third_party/cinder/Surface.h
+	third_party/cinder/System.h
+	third_party/cinder/Timeline.cpp
+	third_party/cinder/Timeline.h
+	third_party/cinder/TimelineItem.cpp
+	third_party/cinder/TimelineItem.h
+	third_party/cinder/Triangulate.cpp
+	third_party/cinder/Triangulate.h
+	third_party/cinder/TriMesh.cpp
+	third_party/cinder/TriMesh.h
+	third_party/cinder/Tween.cpp
+	third_party/cinder/Tween.h
+	#third_party/cinder/Unicode.cpp
+	#third_party/cinder/Unicode.h
+	#third_party/cinder/Url.cpp
+	#third_party/cinder/Url.h
+	third_party/cinder/Utilities.cpp
+	third_party/cinder/Utilities.h
+	third_party/cinder/Vector.h
+)
+
+set(LIBTESS2_SRC
+	third_party/libtess2/alg_outline.md
+	third_party/libtess2/bucketalloc.c
+	third_party/libtess2/bucketalloc.h
+	third_party/libtess2/dict.c
+	third_party/libtess2/dict.h
+	third_party/libtess2/geom.c
+	third_party/libtess2/geom.h
+	third_party/libtess2/include/tesselator.h
+	third_party/libtess2/LICENSE.txt
+	third_party/libtess2/mesh.c
+	third_party/libtess2/mesh.h
+	third_party/libtess2/priorityq.c
+	third_party/libtess2/priorityq.h
+	third_party/libtess2/README.md
+	third_party/libtess2/sweep.c
+	third_party/libtess2/sweep.h
+	third_party/libtess2/tess.c
+	third_party/libtess2/tess.h
+)
+
+set(ZLIB_SRC
+	third_party/zlib/adler32.c
+	third_party/zlib/compress.c
+	third_party/zlib/crc32.c
+	third_party/zlib/crc32.h
+	third_party/zlib/deflate.c
+	third_party/zlib/deflate.h
+	third_party/zlib/gzclose.c
+	third_party/zlib/gzguts.h
+	third_party/zlib/gzlib.c
+	third_party/zlib/gzread.c
+	third_party/zlib/gzwrite.c
+	third_party/zlib/infback.c
+	third_party/zlib/inffast.c
+	third_party/zlib/inffast.h
+	third_party/zlib/inffixed.h
+	third_party/zlib/inflate.c
+	third_party/zlib/inflate.h
+	third_party/zlib/inftrees.c
+	third_party/zlib/inftrees.h
+	third_party/zlib/trees.c
+	third_party/zlib/trees.h
+	third_party/zlib/uncompr.c
+	third_party/zlib/zconf.h
+	third_party/zlib/zlib.h
+	third_party/zlib/zutil.c
+	third_party/zlib/zutil.h	
+)
+
+set(CINDER_NANOVG_SRC
+	third_party/nanovg/bgfx_nanovg_ctx.h
+	third_party/nanovg/bgfx_nanovg_ctx.cpp
+)
+
+set(SRC 
+	src/BgfxSimpleApp.cpp
+	src/BgfxSimpleApp.h
+	#src/ViewIdTestApp.cpp
+	#src/ViewIdTestApp.h
+	src/BgfxRect.cpp
+	src/BgfxRect.h
+	src/BgfxUtil.cpp
+	src/BgfxUtil.h
+	src/Fbo.cpp
+	src/Fbo.h
+	app/IBgfxApp.h
+)
 
 if(WIN32)
 	set(SRC ${SRC}
@@ -183,15 +346,19 @@ endif(ENABLE_IMGUI)
 
 if(ENABLE_NANOVG)
 	makeGroups("${NANOVG_SRC}" ${BGFX_DIR}/examples)
-	set(SRC ${SRC}
-		${NANOVG_SRC}
-	)
+	set(SRC ${SRC} ${NANOVG_SRC})
 endif(ENABLE_NANOVG)
+
+if(ENABLE_CINDER_LITE)
+	makeGroups("${CINDER_LITE_SRC}" ./)
+	makeGroups("${ZLIB_SRC}" ./)
+	set(SRC ${SRC} ${CINDER_LITE_SRC} ${LIBTESS2_SRC} ${ZLIB_SRC})
+endif(ENABLE_CINDER_LITE)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC BX_CONFIG_DEBUG=${BX_CONFIG_DEBUG})
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${BGFX_INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${BGFX_INCLUDE_DIRS} third_party third_party/zlib)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS})
 
 if(WIN32)
@@ -219,29 +386,30 @@ file(GLOB CS_SHADER_SRC LIST_DIRECTORIES false ${SHADER_DIR}/cs_*.sc)
 function(addShaderCompileCommand fileList type)
 	foreach(SHADER_SRC_FILE IN LISTS fileList)
 		string(REGEX MATCH "^(.*)\\.[^.]*$" dummy ${SHADER_SRC_FILE})
-		set(S_SHADER_HDR_FILE ${CMAKE_MATCH_1}.h)
+		set(SHADER_HDR_FILE ${CMAKE_MATCH_1}.h)
 		add_custom_command(
 			VERBATIM
-			OUTPUT  ${S_SHADER_HDR_FILE}
-			DEPENDS ${S_SHADER_SRC_FILE}
-			COMMAND ${SHADERC} --platform ${SHADER_PLATFORM} --profile ${PROFILE} --varyingdef ${SHADER_DIR}/varying.def.sc  -i ${BGFX_DIR}/examples/common -i ${BGFX_DIR}/src -f ${S_SHADER_SRC} -o ${S_SHADER_HDR_FILE} --bin2c --type ${type}
+			OUTPUT  ${SHADER_HDR_FILE}
+			DEPENDS ${SHADER_SRC_FILE}
+			COMMAND ${SHADERC} --platform ${SHADER_PLATFORM} --profile ${PROFILE} --varyingdef ${SHADER_DIR}/varying.def.sc  -i ${BGFX_DIR}/examples/common -i ${BGFX_DIR}/src -i ${SHADER_DIR} -f ${SHADER_SRC_FILE} -o ${SHADER_HDR_FILE} --bin2c --type ${type}
 			COMMENT "Compiling shader ${SHADER_SRC_FILE} with ${SHADERC}."
 		)
-		list(APPEND SHADER_HDR_FILES ${S_SHADER_HDR_FILE})
+		list(APPEND SHADER_HDR_FILES ${SHADER_HDR_FILE})
 	endforeach()
+	set(SHADER_HDR_FILES ${SHADER_HDR_FILES} PARENT_SCOPE)
 endfunction()
 
 if(VS_SHADER_SRC)
-	addShaderCompileCommand(${VS_SHADER_SRC} v)
+	message(VS_SHADER_SRC...................${VS_SHADER_SRC})
+	addShaderCompileCommand("${VS_SHADER_SRC}" v)
 endif(VS_SHADER_SRC)
 if(FS_SHADER_SRC)
-	addShaderCompileCommand(${FS_SHADER_SRC} f)
+	addShaderCompileCommand("${FS_SHADER_SRC}" f)
 endif(FS_SHADER_SRC)
 if(CS_SHADER_SRC)
-	addShaderCompileCommand(${CS_SHADER_SRC} v)
+	addShaderCompileCommand("${CS_SHADER_SRC}" v)
 endif(CS_SHADER_SRC)
 
-#message(${SHADER_HDR_FILES}......................{SHADER_HDR_FILES})
 add_custom_target(Shaders ALL DEPENDS ${SHADER_HDR_FILES} SOURCES ${VS_SHADER_SRC} ${FS_SHADER_SRC} ${CS_SHADER_SRC})
 makeGroups("${VS_SHADER_SRC}" ${CMAKE_SOURCE_DIR})
 makeGroups("${FS_SHADER_SRC}" ${CMAKE_SOURCE_DIR})
