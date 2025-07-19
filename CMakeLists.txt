@@ -1,13 +1,22 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
-PROJECT(bgfx-simple-app LANGUAGES CXX C)
+PROJECT(bgfx-simple-app LANGUAGES CXX C OBJCXX)
 
 option(ENABLE_IMGUI "Enable DearImGui" on)
 option(ENABLE_NANOVG "Enable nanoVG" on)
 option(ENABLE_CINDER_LITE "Enable Cinder-Lite" on)
-set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bgfx)
-set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bimg)
-set(BX_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bx)
+option(BUILD_IOS "Build for iOS instead of OSX when on Apple platforms" off)
+
+set(BGFX_CMAKE_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake)
+set(BGFX_CMAKE_INSTALl_DIR ${BGFX_CMAKE_DIR}/install)
+set(BGFX_DIR ${BGFX_CMAKE_DIR}/bgfx)
+set(BIMG_DIR ${BGFX_CMAKE_DIR}/bimg)
+set(BX_DIR ${BGFX_CMAKE_DIR}/bx)
+if (WIN32)
+set(SHADERC ${BGFX_CMAKE_INSTALl_DIR}/bin/shaderc.exe)
+else()
+set(SHADERC ${BGFX_CMAKE_INSTALl_DIR}/bin/shaderc)
+endif(WIN32)
 #get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin ABSOLUTE)
 #get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_vs2022/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
 
@@ -24,6 +33,14 @@ if(WIN32)
 	get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
 	#get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
 	get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
+elseif(APPLE)
+	if(BUILD_IOS)
+		get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/ios-arm64/bin ABSOLUTE)
+		get_filename_component(SHADERC ${BGFX_DIR}/.build/osx-x64/bin/shadercDebug ABSOLUTE)
+	else()
+		get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/osx-x64/bin ABSOLUTE)
+		get_filename_component(SHADERC ${BGFX_DIR}/.build/osx-x64/bin/shadercDebug ABSOLUTE)
+	endif()
 endif(WIN32)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -159,6 +176,12 @@ if(WIN32)
 		${BGFX_LIB_DIR}/bx$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
 	)
 	set(BGFX_INCLUDE_DIRS ${BGFX_INCLUDE_DIRS} ${BX_DIR}/include/compat/msvc)
+elseif(APPLE)
+	set(BGFX_LIBS
+		${BGFX_CMAKE_INSTALl_DIR}/lib/libbgfx.a
+		${BGFX_CMAKE_INSTALl_DIR}/lib/libbimg.a
+		${BGFX_CMAKE_INSTALl_DIR}/lib/libbx.a
+	)
 endif(WIN32)
 
 #Shcore.lib?
@@ -322,6 +345,7 @@ set(SRC
 	#src/Fbo.cpp
 	#src/Fbo.h
 	app/IBgfxApp.h
+	app/BgfxAppLauncher.h
 )
 
 if(WIN32)
@@ -333,21 +357,35 @@ if(WIN32)
 endif(WIN32)
 
 if(APPLE)
-    set(SRC ${SRC}
-		app/apple/AppDelegate.h
-		app/apple/AppDelegate.mm
-		#app/apple/BgfxiOSAppLauncher.h
-		app/apple/FXBlurView
-		app/apple/GameViewController.h
-		app/apple/GameViewController.mm
-		#app/apple/GestureDelegate.h
-		#app/apple/GestureDelegate.mm
-		app/apple/IBgfxiOSApp.h
-		#app/apple/ImageCropView.h
-		#app/apple/ImageCropView.m
-		app/apple/Renderer.h
-		app/apple/Renderer.mm
-	)
+	if(BUILD_IOS)
+		set(SRC ${SRC}
+			app/ios/AppDelegate.h
+			app/ios/AppDelegate.mm
+			app/ios/BgfxiOSAppLauncher.h
+			app/ios/GameViewController.h
+			app/ios/GameViewController.mm
+			app/ios/GestureDelegate.h
+			app/ios/GestureDelegate.mm
+			app/ios/IBgfxiOSApp.h
+			app/ios/ImageCropView.h
+			app/ios/ImageCropView.m
+			app/ios/Renderer.h
+			app/ios/Renderer.mm
+			app/ios/main.mm
+			app/ios/FXBlurView/FXBlurView.h
+			app/ios/FXBlurView/FXBlurView.m
+		)
+	else()
+		set(SRC ${SRC}
+			app/osx/IBgfxOSXApp.h
+			app/osx/BgfxOSXAppLauncher.h
+			app/osx/OSXViewController.h
+			app/osx/OSXViewController.mm
+			app/osx/OSXAppDelegate.h
+			app/osx/OSXAppDelegate.mm
+			app/osx/main.mm
+		)
+	endif()
 endif(APPLE)
 
 function(makeGroups fileList baseDir)
@@ -401,7 +439,65 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_DEFINE_MATH_OPERATORS) #
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${BGFX_INCLUDE_DIRS} third_party third_party/zlib)
-target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS})
+target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS} zlibstatic)
+
+if(APPLE)
+	# Enable Objective-C++ for .mm files
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		OBJCXX_STANDARD 17
+		OBJCXX_STANDARD_REQUIRED ON
+	)
+	
+	# Enable ARC (Automatic Reference Counting) for all Apple platform files
+	if(BUILD_IOS)
+		set_source_files_properties(
+			app/ios/AppDelegate.mm
+			app/ios/GameViewController.mm
+			app/ios/Renderer.mm
+			app/ios/main.mm
+			app/ios/GestureDelegate.mm
+			app/ios/FXBlurView/FXBlurView.m
+			app/ios/ImageCropView.m
+			PROPERTIES
+			COMPILE_FLAGS "-fobjc-arc"
+		)
+	else()
+		set_source_files_properties(
+			app/osx/OSXViewController.mm
+			app/osx/OSXAppDelegate.mm
+			app/osx/main.mm
+			PROPERTIES
+			COMPILE_FLAGS "-fobjc-arc"
+		)
+	endif()
+	
+	# Force certain Cinder .cpp files to be compiled as Objective-C++
+	set_source_files_properties(
+		third_party/cinder/Log.cpp
+		third_party/cinder/CaptureImplAvFoundation.mm
+		PROPERTIES
+		COMPILE_FLAGS "-x objective-c++ -fobjc-arc"
+	)
+	
+	if(BUILD_IOS)
+		target_link_libraries(${PROJECT_NAME} PUBLIC
+			"-framework UIKit"
+			"-framework Metal"
+			"-framework MetalKit" 
+			"-framework QuartzCore"
+			"-framework Foundation"
+		)
+	else()
+		target_link_libraries(${PROJECT_NAME} PUBLIC
+			"-framework Cocoa"
+			"-framework Metal"
+			"-framework MetalKit"
+			"-framework QuartzCore" 
+			"-framework Foundation"
+			"-framework IOKit"
+		)
+	endif()
+endif()
 
 if(WIN32)
 	target_compile_definitions(${PROJECT_NAME} PUBLIC _UNICODE UNICODE -DPRId64="I64d" -DPRIu64="I64u" NOMINMAX)
@@ -417,7 +513,11 @@ if(WIN32)
 	set(SHADER_PLATFORM windows)
 	set(PROFILE s_5_0)
 elseif(APPLE)
-	set(SHADER_PLATFORM osx) # or ios
+	if(BUILD_IOS)
+		set(SHADER_PLATFORM ios)
+	else()
+		set(SHADER_PLATFORM osx)
+	endif()
 	set(PROFILE metal)
 endif()
 

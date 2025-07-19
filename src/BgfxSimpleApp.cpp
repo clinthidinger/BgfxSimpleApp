@@ -101,7 +101,7 @@ void BgfxSimpleApp::update()
 void BgfxSimpleApp::shutdown()
 {
     std::cerr << "shutdown\n"; //??? who calls?
-    bgfx::shutdown();
+    bgfx::shutdown(); //!!! SHOULD be called by App hooks.
 }
 
 void BgfxSimpleApp::resize( int width, int height, float scaleFactor )
@@ -117,12 +117,12 @@ bool BgfxSimpleApp::enableAutoRefresh()
     return true;
 }
 
-void BgfxSimpleApp::handleKeyDown( uint8_t key, int keyMods )
+void BgfxSimpleApp::handleKeyDown( uint16_t key, int keyMods )
 {
 
 }
 
-void BgfxSimpleApp::handleKeyUp( uint8_t key, int keyMods )
+void BgfxSimpleApp::handleKeyUp( uint16_t key, int keyMods )
 {
 
 }
@@ -147,6 +147,10 @@ void BgfxSimpleApp::handleMouseWheel( float x, float y, int delta )
 
 }
 
+void BgfxSimpleApp::handleMouseMove( float x, float y )
+{
+    
+}
 
 int BgfxSimpleApp::getWidth() const
 {
@@ -168,19 +172,43 @@ void BgfxSimpleApp::setHeight( int height )
     mHeight = height;
 }
 
-void BgfxSimpleApp::setRefeshFunc( const std::function<void()>& refreshFunc )
+void BgfxSimpleApp::setRefreshFunc( const std::function<void()>& refreshFunc )
 {
     mRefreshFunc = refreshFunc;
 }
 
-void BgfxSimpleApp::setAutoRefeshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc )
+void BgfxSimpleApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc )
 {
     mAutoRefreshStateFunc = autoRefreshStateFunc;
 }
 
-const wchar_t* const BgfxSimpleApp::getTitle() const
+#ifdef __APPLE__
+void BgfxSimpleApp::didFinishLaunching()
 {
-    return L"BGFX Simple App";
+    
 }
 
+void BgfxSimpleApp::willTerminate()
+{
+    
+}
+void BgfxSimpleApp::didBecomeActive()
+{
+    
+}
+
+void BgfxSimpleApp::willResignActive()
+{
+    
+}
+
+#endif
+
+const char* const BgfxSimpleApp::getTitle() const
+{
+    return "BGFX Simple App";
+}
+
+#ifdef _WIN32
 BgfxWin32Main( BgfxSimpleApp )
+#endif

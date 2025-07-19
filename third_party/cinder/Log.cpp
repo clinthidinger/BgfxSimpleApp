@@ -28,7 +28,7 @@
 //#include "cinder/app/Platform.h"
 
 #if defined( CINDER_COCOA )
-	#include "cinder/app/cocoa/PlatformCocoa.h"
+	//!!!#include "cinder/app/cocoa/PlatformCocoa.h"
 	#import <Foundation/Foundation.h>
 	#include <syslog.h>
 #elif defined( CINDER_MSW_DESKTOP )
@@ -319,7 +319,7 @@ public:
 	{
 #if defined( CINDER_COCOA )
 		// determine app name from it's NSBundle. https://developer.apple.com/library/mac/qa/qa1544/_index.html
-		NSBundle *bundle = app::PlatformCocoa::get()->getBundle();
+		NSBundle *bundle = [NSBundle mainBundle];
 		NSString *bundlePath = [bundle bundlePath];
 		NSString *appName = [[NSFileManager defaultManager] displayNameAtPath: bundlePath];
 		const char *cAppName = [appName UTF8String];
