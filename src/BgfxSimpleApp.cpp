@@ -3,10 +3,10 @@
 //  Test_Game
 //
 //  Created by clint hidinger on 1/2/20.
-//  Copyright © 2020 me. All rights reserved.
+//  Copyright ï¿½ 2020 me. All rights reserved.
 //
 
-#include "BGfxSimpleApp.h"
+#include "BgfxSimpleApp.h"
 #include <assert.h>
 #include <cstring>
 #include <iostream>

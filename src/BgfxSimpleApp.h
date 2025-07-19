@@ -1,6 +1,6 @@
 //
 //  Created by clint hidinger on 1/2/20.
-//  Copyright © 2020 me. All rights reserved.
+//  Copyright ï¿½ 2020 me. All rights reserved.
 //
 
 #pragma once
@@ -11,9 +11,21 @@
 #include <memory>
 #include <bgfx/platform.h>
 #include <bx/file.h>
+#ifdef _WIN32
 #include "app/win32/IBgfxWin32App.h"
+#define IBGFX_BASE_APP IBgfxWin32App
+#endif
+#ifdef __APPLE__
+#include <TargetConditionals.h>
+    #if TARGET_OS_IPHONE
+        #include "app/apple/IBgfxOSXApp.h"
+    #elif TARGET_OS_MAC
+        #include "app/apple/IBgfxiOSApp.h"
+    #endif
+#define IBGFX_BASE_APP IBgfxiOSApp
+#endif
 
-class BgfxSimpleApp : public IBgfxWin32App
+class BgfxSimpleApp : public IBGFX_BASE_APP
 {
 public:
     BgfxSimpleApp() = default;

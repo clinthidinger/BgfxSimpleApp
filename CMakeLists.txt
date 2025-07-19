@@ -1,24 +1,37 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 PROJECT(bgfx-simple-app LANGUAGES CXX C)
 
 option(ENABLE_IMGUI "Enable DearImGui" on)
 option(ENABLE_NANOVG "Enable nanoVG" on)
 option(ENABLE_CINDER_LITE "Enable Cinder-Lite" on)
-set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bgfx)
-set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bimg)
-set(BX_DIR ${CMAKE_SOURCE_DIR}/../../npainter/ThirdParty/bx)
+set(BGFX_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bgfx)
+set(BIMG_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bimg)
+set(BX_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake/bx)
 #get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_vs2022/bin ABSOLUTE)
 #get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_vs2022/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
-set(VS_VERSION vs2022)
-get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
-get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
-set(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
+
+#set(VS_VERSION vs2022)
+#get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
+#get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
+
+set( VERSION_MAJOR "00" )
+set( VERSION_MINOR "00" )
+set( VERSION_PATCH "00" )
+
+if(WIN32)
+	set(VS_VERSION vs2022)
+	get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
+	#get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shaderc$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.exe ABSOLUTE)
+	get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
+endif(WIN32)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++17)
 set(BX_CONFIG_DEBUG $<CONFIG:Debug>)
+set(SHADER_DIR ${CMAKE_SOURCE_DIR}/shaders)
+get_filename_component(SHADER_DIR ${SHADER_DIR} ABSOLUTE)
 
 if(WIN32)
 	add_compile_options( /wd4201 /wd4324 /Ob2 /Zc:__cplusplus)
@@ -28,6 +41,9 @@ if(WIN32)
 	string(REPLACE "MDd" "MTd" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
 	string(REPLACE "MD" "MT" CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}")
 endif(WIN32)
+
+set(ZLIB_BUILD_EXAMPLES OFF)
+add_subdirectory(third_party/zlib)
 
 if(ENABLE_IMGUI)
 	set(IMGUI_SRC
@@ -260,34 +276,34 @@ set(LIBTESS2_SRC
 	third_party/libtess2/tess.h
 )
 
-set(ZLIB_SRC
-	third_party/zlib/adler32.c
-	third_party/zlib/compress.c
-	third_party/zlib/crc32.c
-	third_party/zlib/crc32.h
-	third_party/zlib/deflate.c
-	third_party/zlib/deflate.h
-	third_party/zlib/gzclose.c
-	third_party/zlib/gzguts.h
-	third_party/zlib/gzlib.c
-	third_party/zlib/gzread.c
-	third_party/zlib/gzwrite.c
-	third_party/zlib/infback.c
-	third_party/zlib/inffast.c
-	third_party/zlib/inffast.h
-	third_party/zlib/inffixed.h
-	third_party/zlib/inflate.c
-	third_party/zlib/inflate.h
-	third_party/zlib/inftrees.c
-	third_party/zlib/inftrees.h
-	third_party/zlib/trees.c
-	third_party/zlib/trees.h
-	third_party/zlib/uncompr.c
-	third_party/zlib/zconf.h
-	third_party/zlib/zlib.h
-	third_party/zlib/zutil.c
-	third_party/zlib/zutil.h	
-)
+# set(ZLIB_SRC
+# 	third_party/zlib/adler32.c
+# 	third_party/zlib/compress.c
+# 	third_party/zlib/crc32.c
+# 	third_party/zlib/crc32.h
+# 	third_party/zlib/deflate.c
+# 	third_party/zlib/deflate.h
+# 	third_party/zlib/gzclose.c
+# 	third_party/zlib/gzguts.h
+# 	third_party/zlib/gzlib.c
+# 	third_party/zlib/gzread.c
+# 	third_party/zlib/gzwrite.c
+# 	third_party/zlib/infback.c
+# 	third_party/zlib/inffast.c
+# 	third_party/zlib/inffast.h
+# 	third_party/zlib/inffixed.h
+# 	third_party/zlib/inflate.c
+# 	third_party/zlib/inflate.h
+# 	third_party/zlib/inftrees.c
+# 	third_party/zlib/inftrees.h
+# 	third_party/zlib/trees.c
+# 	third_party/zlib/trees.h
+# 	third_party/zlib/uncompr.c
+# 	third_party/zlib/zconf.h
+# 	third_party/zlib/zlib.h
+# 	third_party/zlib/zutil.c
+# 	third_party/zlib/zutil.h	
+# )
 
 set(CINDER_NANOVG_SRC
 	third_party/nanovg/bgfx_nanovg_ctx.h
@@ -299,12 +315,12 @@ set(SRC
 	src/BgfxSimpleApp.h
 	#src/ViewIdTestApp.cpp
 	#src/ViewIdTestApp.h
-	src/BgfxRect.cpp
-	src/BgfxRect.h
-	src/BgfxUtil.cpp
-	src/BgfxUtil.h
-	src/Fbo.cpp
-	src/Fbo.h
+	#src/BgfxRect.cpp
+	#src/BgfxRect.h
+	#src/BgfxUtil.cpp
+	#src/BgfxUtil.h
+	#src/Fbo.cpp
+	#src/Fbo.h
 	app/IBgfxApp.h
 )
 
@@ -315,6 +331,24 @@ if(WIN32)
 		app/win32/Win32Application.cpp
 	)
 endif(WIN32)
+
+if(APPLE)
+    set(SRC ${SRC}
+		app/apple/AppDelegate.h
+		app/apple/AppDelegate.mm
+		#app/apple/BgfxiOSAppLauncher.h
+		app/apple/FXBlurView
+		app/apple/GameViewController.h
+		app/apple/GameViewController.mm
+		#app/apple/GestureDelegate.h
+		#app/apple/GestureDelegate.mm
+		app/apple/IBgfxiOSApp.h
+		#app/apple/ImageCropView.h
+		#app/apple/ImageCropView.m
+		app/apple/Renderer.h
+		app/apple/Renderer.mm
+	)
+endif(APPLE)
 
 function(makeGroups fileList baseDir)
 	foreach(FILE ${fileList}) 
@@ -358,6 +392,14 @@ endif(ENABLE_CINDER_LITE)
 add_executable(${PROJECT_NAME} ${SRC})
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC BX_CONFIG_DEBUG=${BX_CONFIG_DEBUG})
+target_compile_definitions( ${PROJECT_NAME} PUBLIC 
+	VERSION_MAJOR=${VERSION_MAJOR}
+	VERSION_MINOR=${VERSION_MINOR}
+	VERSION_PATCH=${VERSION_PATCH} 
+)
+target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_DEFINE_MATH_OPERATORS) # Note: Instead of defining this, could do a cast operator to ci::vec2.
+
+
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${BGFX_INCLUDE_DIRS} third_party third_party/zlib)
 target_link_libraries(${PROJECT_NAME} PUBLIC ${BGFX_LIBS})
 
