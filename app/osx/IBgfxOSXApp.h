@@ -40,7 +40,16 @@ public:
     virtual void handleMouseDrag( uint8_t button, float x, float y ) = 0;
     virtual void handleMouseWheel( float x, float y, int delta ) = 0;
     virtual void handleMouseMove( float x, float y ) = 0;
-
+    
+    // Gesture handling methods for trackpad support
+#ifdef ENABLE_GESTURES
+    virtual void handleSingleTap( float x, float y ) = 0;
+    virtual void handleDoubleTap( float x, float y ) = 0;
+    virtual void handlePan( float x, float y, float translationX, float translationY, float velocityX, float velocityY, int numTouches ) = 0;
+    virtual void handlePinch( int type, float x, float y, float scale ) = 0;
+    virtual void handleRotation( float x, float y, float rotation ) = 0;
+#endif
+    
     virtual int getWidth() const = 0;
     virtual int getHeight() const = 0;
     virtual void setWidth( int width ) = 0;

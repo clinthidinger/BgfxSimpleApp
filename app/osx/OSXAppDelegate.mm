@@ -42,7 +42,7 @@
     IBgfxOSXApp* app = BgfxOSXAppLauncher::instance().getApp();
     if (app) {
         app->willTerminate();
-        //app->shutdown();
+        app->shutdown();
     }
     BgfxOSXAppLauncher::instance().deleteApp();
 }

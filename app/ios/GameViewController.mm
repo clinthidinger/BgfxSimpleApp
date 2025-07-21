@@ -10,6 +10,9 @@
 #import "Renderer.h"
 #include <bgfx/platform.h>
 #include "BgfxiOSAppLauncher.h"
+#import <AVFoundation/AVFoundation.h>
+#import <Photos/Photos.h>
+#import <MobileCoreServices/MobileCoreServices.h>
 
 
 //https://github.com/Milan-Shah/SLComposeController---Social-Share-over-Extension/blob/61084f64f0d3e7de760b96272b679a3673d5469e/SLCompose%20Twitter%20%26%20FaceBook/ViewController.m
@@ -43,7 +46,11 @@
 - (UIActivityIndicatorView *)indicator {
     //https://pinkstone.co.uk/how-to-display-a-spinning-wheel-indicator-in-the-centre-of-your-screen/
     if (!_indicator) {
-        _indicator = [[UIActivityIndicatorView alloc]initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+        if (@available(iOS 13.0, *)) {
+            _indicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleLarge];
+        } else {
+            _indicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+        }
     }
     return _indicator;
 }
@@ -72,6 +79,9 @@
 
     _view.delegate = _renderer;
     
+    // Setup gesture recognizers
+    [self setupGestures];
+    
      //_imageCropView = [ImageCropView alloc];
     
     // app->setRefeshFunc( [view] () { [view setNeedsDisplay]; } );
@@ -98,77 +108,6 @@
         }
     });
 }
-
-
-
-#pragma mark - Input Event Handlers (Forward to Renderer)
-
-- (void)handleKeyDown:(NSInteger)keyCode
-{
-    //[_pressedKeys addObject:@(keyCode)];
-    // Forward to renderer for game logic
-    //[self.renderer handleKeyDown:keyCode];
-}
-
-- (void)handleKeyUp:(NSInteger)keyCode {
-    //[_pressedKeys removeObject:@(keyCode)];
-    // Forward to renderer for game logic
-    //[self.renderer handleKeyUp:keyCode];
-}
-
-- (void)handleMouseDown:(CGPoint)location button:(NSInteger)button
-{
-    //_mousePressed = YES;
-    //_lastMouseLocation = location;
-    // Forward to renderer for game logic
-    //[self.renderer handleMouseDown:location button:button];
-}
-
-- (void)handleMouseUp:(CGPoint)location button:(NSInteger)button
-{
-    //_mousePressed = NO;
-    // Forward to renderer for game logic
-    //[self.renderer handleMouseUp:location button:button];
-}
-
-- (void)handleMouseDrag:(CGPoint)location
-{
-    //if (_mousePressed) {
-        CGPoint delta = CGPointMake(location.x - _lastMouseLocation.x,
-                                   location.y - _lastMouseLocation.y);
-        _lastMouseLocation = location;
-        // Forward to renderer for game logic
-        //[self.renderer handleMouseDrag:location delta:delta];
-    //}
-}
-
-- (void)handleMouseWheel:(CGFloat)deltaX deltaY:(CGFloat)deltaY
-{
-    // Forward to renderer for game logic
-    //[self.renderer handleMouseWheel:deltaX deltaY:deltaY];
-}
-
-- (CGFloat)getWidth
-{
-    return self.mtkView.bounds.size.width;
-}
-
-- (CGFloat)getHeight
-{
-    return self.mtkView.bounds.size.height;
-}
-
-- (void)setSize:(CGFloat)width height:(CGFloat)height
-{
-    CGRect newFrame = CGRectMake(self.mtkView.frame.origin.x,
-                                self.mtkView.frame.origin.y,
-                                width, height);
-    self.mtkView.frame = newFrame;
-    
-    // Notify renderer of size change
-    [self.renderer handleResize:CGSizeMake(width, height)];
-}
-
 
 // Note: these two funcs prevent landscape.
 - (UIInterfaceOrientationMask)supportedInterfaceOrientations
@@ -209,51 +148,202 @@
 
 //#pragma mark - IBActions
 //- (IBAction)pickImageButtonClicked:(id)sender
-- (void)showImagePicker: (UIImagePickerControllerSourceType)sourceType
-{
-    //pick image from picker
-    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeSavedPhotosAlbum] ) {
-        UIImagePickerController *imagePicker = [[UIImagePickerController alloc]init];
-        imagePicker.delegate = self;
-        //imagePicker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
-        //!!!imagePicker.mediaTypes = [NSArray arrayWithObjects:(NSString *) kUTTypeImage, nil];
-        imagePicker.allowsEditing = NO;
-        imagePicker.sourceType = sourceType;
-        //imagePicker.imageExportPreset
-        //imagePicker.cameraFlashMode =  UIImagePickerControllerCameraFlashModeAuto;
-        
-//        if (sourceType == UIImagePickerControllerSourceTypeCamera) {
-//            imagePicker.cameraFlashMode =  UIImagePickerControllerCameraFlashModeAuto;
-//        }
-        
-        
-        //imagePicker.allowsEditing = true;// seems to strecth the image or have orientation issues.
-        //imagePicker.cameraCaptureMode = UIImagePickerControllerCameraCaptureModePhoto;
-        //imagePicker.
-        // Need to reduce size.  Either do in opencv or look at:
-        //https://stackoverflow.com/questions/12258280/capturing-photos-with-specific-resolution-using-the-uiimagepickercontroller
-        /*
-       
-         imagePicker.modalPresentationStyle =
-             (sourceType == UIImagePickerControllerSourceTypeCamera) ?
-        UIModalPresentationFullScreen : UIModalPresentationPopover;
-         
-        UIPopoverPresentationController *presentationController = imagePicker.popoverPresentationController;
-        //presentationController?.barButtonItem = button;     // Display popover from the UIBarButtonItem as an anchor.
-        //presentationController?.permittedArrowDirections = UIPopoverArrowDirection.any;
-         
-         if (sourceType == UIImagePickerControllerSourceTypeCamera) {
-             // The user wants to use the camera interface. Set up our custom overlay view for the camera.
-             imagePicker.showsCameraControls = false;
-         
-             // Apply our overlay view containing the toolar to take pictures in various ways.
-             //overlayView?.frame = (imagePicker.cameraOverlayView?.frame)!
-             //imagePicker.cameraOverlayView = overlayView;
-         }
-         //*/
-        
-        [self presentViewController:imagePicker animated:YES completion:nil];
+- (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType {
+    // Check permissions first
+    if (sourceType == UIImagePickerControllerSourceTypeCamera) {
+        [self checkCameraPermissionAndShowPicker:sourceType];
+    } else {
+        [self checkPhotoLibraryPermissionAndShowPicker:sourceType];
     }
+}
+
+- (void)checkCameraPermissionAndShowPicker:(UIImagePickerControllerSourceType)sourceType {
+    AVAuthorizationStatus cameraStatus = [AVCaptureDevice authorizationStatusForMediaType:AVMediaTypeVideo];
+    
+    switch (cameraStatus) {
+        case AVAuthorizationStatusAuthorized:
+            [self presentImagePicker:sourceType];
+            break;
+        case AVAuthorizationStatusNotDetermined:
+            [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (granted) {
+                        [self presentImagePicker:sourceType];
+                    } else {
+                        [self showPermissionDeniedAlert:@"Camera"];
+                    }
+                });
+            }];
+            break;
+        default:
+            [self showPermissionDeniedAlert:@"Camera"];
+            break;
+    }
+}
+
+- (void)checkPhotoLibraryPermissionAndShowPicker:(UIImagePickerControllerSourceType)sourceType {
+    PHAuthorizationStatus photoStatus = [PHPhotoLibrary authorizationStatus];
+    
+    switch (photoStatus) {
+        case PHAuthorizationStatusAuthorized:
+        case PHAuthorizationStatusLimited:
+            [self presentImagePicker:sourceType];
+            break;
+        case PHAuthorizationStatusNotDetermined:
+            [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if (status == PHAuthorizationStatusAuthorized || status == PHAuthorizationStatusLimited) {
+                        [self presentImagePicker:sourceType];
+                    } else {
+                        [self showPermissionDeniedAlert:@"Photo Library"];
+                    }
+                });
+            }];
+            break;
+        default:
+            [self showPermissionDeniedAlert:@"Photo Library"];
+            break;
+    }
+}
+
+- (void)presentImagePicker:(UIImagePickerControllerSourceType)sourceType {
+    if (![UIImagePickerController isSourceTypeAvailable:sourceType]) {
+        NSLog(@"Source type not available: %ld", (long)sourceType);
+        return;
+    }
+    
+    UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+    imagePicker.delegate = self;
+    imagePicker.sourceType = sourceType;
+    imagePicker.mediaTypes = @[(NSString *)kUTTypeImage];
+    imagePicker.allowsEditing = NO;
+    
+    if (sourceType == UIImagePickerControllerSourceTypeCamera) {
+        imagePicker.cameraFlashMode = UIImagePickerControllerCameraFlashModeAuto;
+        imagePicker.cameraCaptureMode = UIImagePickerControllerCameraCaptureModePhoto;
+    }
+    
+    [self presentViewController:imagePicker animated:YES completion:nil];
+}
+
+- (void)showPermissionDeniedAlert:(NSString *)permissionType {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Permission Required"
+                                                                   message:[NSString stringWithFormat:@"Please enable %@ access in Settings to use this feature.", permissionType]
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *settingsAction = [UIAlertAction actionWithTitle:@"Settings" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString] options:@{} completionHandler:nil];
+    }];
+    
+    UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil];
+    
+    [alert addAction:settingsAction];
+    [alert addAction:cancelAction];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
+
+#pragma mark - Gesture Setup
+
+- (void)setupGestures {
+    // Remove any existing gesture recognizers
+    for (UIGestureRecognizer *recognizer in self.view.gestureRecognizers) {
+        [self.view removeGestureRecognizer:recognizer];
+    }
+    
+    // Single tap
+    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+    singleTap.numberOfTapsRequired = 1;
+    singleTap.delegate = self;
+    [self.view addGestureRecognizer:singleTap];
+    
+    // Double tap
+    UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
+    doubleTap.numberOfTapsRequired = 2;
+    doubleTap.delegate = self;
+    [self.view addGestureRecognizer:doubleTap];
+    
+    // Pan gesture
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePan:)];
+    pan.delegate = self;
+    [self.view addGestureRecognizer:pan];
+    
+    // Pinch gesture
+    UIPinchGestureRecognizer *pinch = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(handlePinch:)];
+    pinch.delegate = self;
+    [self.view addGestureRecognizer:pinch];
+    
+    // Rotation gesture
+    UIRotationGestureRecognizer *rotation = [[UIRotationGestureRecognizer alloc] initWithTarget:self action:@selector(handleRotation:)];
+    rotation.delegate = self;
+    [self.view addGestureRecognizer:rotation];
+    
+    // Set up gesture dependencies - single tap should wait for double tap to fail
+    [singleTap requireGestureRecognizerToFail:doubleTap];
+    [singleTap requireGestureRecognizerToFail:pan];
+    [singleTap requireGestureRecognizerToFail:pinch];
+    [singleTap requireGestureRecognizerToFail:rotation];
+}
+
+#pragma mark - Gesture Handlers
+
+- (void)handleSingleTap:(UITapGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handleSingleTap(location.x, location.y);
+    }
+}
+
+- (void)handleDoubleTap:(UITapGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handleDoubleTap(location.x, location.y);
+    }
+}
+
+- (void)handlePan:(UIPanGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    CGPoint translation = [recognizer translationInView:self.view];
+    CGPoint velocity = [recognizer velocityInView:self.view];
+    NSUInteger numTouches = [recognizer numberOfTouches];
+    
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handlePan(location.x, location.y, translation.x, translation.y, velocity.x, velocity.y, (int)numTouches);
+    }
+    
+    [recognizer setTranslation:CGPointZero inView:self.view];
+}
+
+- (void)handlePinch:(UIPinchGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handlePinch(location.x, location.y, recognizer.scale);
+    }
+    recognizer.scale = 1.0;
+}
+
+- (void)handleRotation:(UIRotationGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handleRotation(location.x, location.y, recognizer.rotation);
+    }
+    recognizer.rotation = 0.0;
+}
+
+#pragma mark - UIGestureRecognizerDelegate
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    // Allow pinch and rotation to work together
+    if (([gestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]]) ||
+        ([gestureRecognizer isKindOfClass:[UIRotationGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UIPinchGestureRecognizer class]])) {
+        return YES;
+    }
+    return NO;
 }
 
 #pragma mark UIImagePickerControllerDelegate
@@ -299,97 +389,67 @@
 //  return result;
 //}
 
--(void)imagePickerController:(nonnull UIImagePickerController *)picker didFinishPickingMediaWithInfo:(nonnull NSDictionary<NSString *,id> *)info {
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<UIImagePickerControllerInfoKey, id> *)info {
     
-//    NSString *mediaType = [info objectForKey:UIImagePickerControllerMediaType];
-//    [self dismissViewControllerAnimated:YES completion:nil];
-//    if ([mediaType isEqualToString:(NSString *)kUTTypeImage]) {
-//        UIImage *pickedImage = [info objectForKey:UIImagePickerControllerOriginalImage];
-//
-//        self.imageView.image = pickedImage;
-//    }
+    [picker dismissViewControllerAnimated:YES completion:nil];
     
-    UIImage *image= info[UIImagePickerControllerEditedImage];
-    if (!image) {
-        image = info[UIImagePickerControllerOriginalImage];
+    // Get the selected image - prefer edited if available, otherwise original
+    UIImage *selectedImage = info[UIImagePickerControllerEditedImage];
+    if (!selectedImage) {
+        selectedImage = info[UIImagePickerControllerOriginalImage];
     }
     
-    /*
-    {
-        if(image != nil)
-        {
-            [self dismissViewControllerAnimated:YES completion:^{
-                  NSLog(@"Finished image picking");
-               }];
-            
-            _imageCropView.image = image;
-            //_imageCropView.controlColor = [UIColor cyanColor];
-        
-            ImageCropViewController *controller = [[ImageCropViewController alloc] initWithImage:image];
-            controller.delegate = self;
-            controller.blurredBackground = YES;
-            // set the cropped area
-            controller.cropArea = CGRectMake(0, 0, 100, 200);
-            //[[self navigationController] pushViewController:controller animated:YES];
-            [self presentViewController:controller animated:YES completion:nil];
-            return;
-        }
+    if (selectedImage) {
+        [self processSelectedImage:selectedImage];
     }
-     */
-    
-    
-    
-    //image.CGImage->
-    //NSData *imageData = UIImagePNGRepresentation(image);
-    
-    /*
-    {
-        CGImageRef imageRef = [image CGImage];
-        CFDataRef dataRef = CGDataProviderCopyData(CGImageGetDataProvider(imageRef));
-        const UInt8 *rawData = CFDataGetBytePtr( dataRef );
-        BgfxiOSAppLauncher::instance().getApp()->setPickedImage(rawData, image.size.width, image.size.height, 4);
-        //std::unique_ptr<uint8_t[]> rawData2(new uint8_t[image.size.width * image.size.height * 4]);
-        //CFDataGetBytes( dataRef, CFRangeMake( 0, image.size.width * image.size.height * 4 ), rawData2.get() );
-        //BgfxiOSAppLauncher::instance().getApp()->setPickedImage( rawData2.get(), image.size.width, image.size.height, 4);
-       
-    }
-     //*/
-    //*
-    {
-        //https://stackoverflow.com/questions/448125/how-to-get-pixel-data-from-a-uiimage-cocoa-touch-or-cgimage-core-graphics
-        
-        // todo: https://stackoverflow.com/questions/12258280/capturing-photos-with-specific-resolution-using-the-uiimagepickercontroller
-        //auto width = image.size.width;
-        //auto height = image.size.height;
-        CGImageRef imageRef = [image CGImage];
-        // TODO: change width, height to desired image size!!!
-        NSUInteger width = CGImageGetWidth(imageRef);
-        NSUInteger height = CGImageGetHeight(imageRef);
-        CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-        //std::unique_ptr<uint8_t[]> rawData( new uint8_t[height * width * 4] ); // Make member!!!
-        if( ( _imageRawDataSize != ( height * width * 4 ) ) || ( _imageRawData == nullptr ) )
-        {
-            _imageRawDataSize = height * width * 4;
-            _imageRawData.reset( new uint8_t[_imageRawDataSize] );
-        }
-        NSUInteger bytesPerPixel = 4;
-        NSUInteger bytesPerRow = bytesPerPixel * width;
-        NSUInteger bitsPerComponent = 8;
-        CGContextRef context = CGBitmapContextCreate(
-                        _imageRawData.get(),
-                        width, height,
-                        bitsPerComponent, bytesPerRow, colorSpace,
-                        kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-        CGColorSpaceRelease(colorSpace);
+}
 
+- (void)processSelectedImage:(UIImage *)image {
+    if (!image) {
+        NSLog(@"Warning: No image to process");
+        return;
+    }
+    
+    // Extract pixel data from the image
+    // Reference: https://stackoverflow.com/questions/448125/how-to-get-pixel-data-from-a-uiimage-cocoa-touch-or-cgimage-core-graphics
+    // Get image dimensions
+    NSUInteger width = CGImageGetWidth(imageRef);
+    NSUInteger height = CGImageGetHeight(imageRef);
+    
+    // Allocate buffer for pixel data if needed
+    NSUInteger requiredSize = height * width * 4; // RGBA
+    if (_imageRawDataSize != requiredSize || !_imageRawData) {
+        _imageRawDataSize = requiredSize;
+        _imageRawData.reset(new uint8_t[_imageRawDataSize]);
+    }
+    
+    // Create bitmap context to extract pixel data
+    NSUInteger bytesPerPixel = 4;
+    NSUInteger bytesPerRow = bytesPerPixel * width;
+    NSUInteger bitsPerComponent = 8;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGContextRef context = CGBitmapContextCreate(
+        _imageRawData.get(),
+        width, height,
+        bitsPerComponent, bytesPerRow, colorSpace,
+        kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big
+    );
+    
+    if (context) {
         CGContextDrawImage(context, CGRectMake(0, 0, width, height), imageRef);
         CGContextRelease(context);
-        BgfxiOSAppLauncher::instance().getApp()->setPickedImage(_imageRawData.get(), width, height, 4);
+        
+        // Pass the pixel data to the app
+        IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+        if (app) {
+            app->setPickedImage(_imageRawData.get(), width, height, bytesPerPixel);
+        }
+    } else {
+        NSLog(@"Error: Failed to create bitmap context for image processing");
     }
-     //*/
     
-    
-    //BgfxiOSAppLauncher::instance().getApp()->setPickedImage(static_cast<const uint8_t *>(imageData.bytes), image.size.width, image.size.height, 4);
+    CGColorSpaceRelease(colorSpace);
        
     //[self.photos addObject:image];
     //[self.collectionView reloadData];
@@ -399,14 +459,8 @@
     }];
 }
 
--(void)imagePickerControllerDidCancel:(nonnull UIImagePickerController *)picker {
-    
-    //Take the picker away if clicked on cancel
-    [self dismissViewControllerAnimated:YES completion:nil];
-    
-    //[self dismissViewControllerAnimated:YES completion:^{
-    //    NSLog(@"Image picker view dismissed");
-    //}];
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+    [picker dismissViewControllerAnimated:YES completion:nil];
 }
 
 /*

@@ -6,13 +6,13 @@
 //  Copyright © 2019 me. All rights reserved.
 //
 
-//!!!#import <UIKit/UIKit.h>
+#import <UIKit/UIKit.h>
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import "Renderer.h"
 
-// Our iOS view controller
-@interface GameViewController : UIViewController<UIImagePickerControllerDelegate, UINavigationControllerDelegate>//, ImageCropViewControllerDelegate>
+// Our iOS view controller - now handles gestures directly
+@interface GameViewController : UIViewController <UIImagePickerControllerDelegate, UINavigationControllerDelegate, UIGestureRecognizerDelegate>
 
 - (void)handleKeyDown:(NSInteger)keyCode;
 - (void)handleKeyUp:(NSInteger)keyCode;

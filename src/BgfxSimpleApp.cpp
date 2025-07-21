@@ -55,18 +55,17 @@ void BgfxSimpleApp::init( int width, int height, float scaleFactor, void *nwh, v
     // Set view 0 clear state.
     bgfx::setViewClear( mDefaultViewId
         , BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
-        , 0x303030ff
+        , 0x308030ff
         , 1.0f
         , 0
     );
 
-    mCaps = bgfx::getCaps();
-   
+    mCaps = bgfx::getCaps();   
 }
 
 BgfxSimpleApp::~BgfxSimpleApp()
 {
-    shutdown();
+    //shutdown();
 }
 
 void BgfxSimpleApp::render()
@@ -83,7 +82,7 @@ void BgfxSimpleApp::render()
     bx::mtxOrtho( ortho, 0.0f, float( width ), float( height ), 0, 0.0f, 100.0f, 0.0, mCaps->homogeneousDepth );
     bgfx::setViewTransform( mDefaultViewId, nullptr, ortho );
     */
-   
+
     mCurrentFrame = bgfx::frame();
 }
 

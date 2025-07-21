@@ -6,6 +6,7 @@ option(ENABLE_IMGUI "Enable DearImGui" on)
 option(ENABLE_NANOVG "Enable nanoVG" on)
 option(ENABLE_CINDER_LITE "Enable Cinder-Lite" on)
 option(BUILD_IOS "Build for iOS instead of OSX when on Apple platforms" off)
+option(ENABLE_GESTURES "Enable gestures for desktop platforms" off)
 
 set(BGFX_CMAKE_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake)
 set(BGFX_CMAKE_INSTALl_DIR ${BGFX_CMAKE_DIR}/install)
@@ -436,6 +437,9 @@ target_compile_definitions( ${PROJECT_NAME} PUBLIC
 	VERSION_PATCH=${VERSION_PATCH} 
 )
 target_compile_definitions(${PROJECT_NAME} PUBLIC IMGUI_DEFINE_MATH_OPERATORS) # Note: Instead of defining this, could do a cast operator to ci::vec2.
+if(ENABLE_GESTURES)
+target_compile_definitions(${PROJECT_NAME} PUBLIC ENABLE_GESTURES=1)
+endif(ENABLE_GESTURES)
 
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR} src app ${BGFX_INCLUDE_DIRS} third_party third_party/zlib)

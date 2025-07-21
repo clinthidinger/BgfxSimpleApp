@@ -10,6 +10,8 @@
 
 #include <functional>
 #include <memory>
+#include <vector>
+#include <string>
 #include "Win32Application.h"
 #include "app/IBgfxApp.h"
 
@@ -19,8 +21,8 @@ public:
     virtual ~IBgfxWin32App() = default;
     
     virtual void init( int width, int height, float scaleFactor, void *nwh, void *context ) = 0;
-    virtual void setRefeshFunc( const std::function<void()> &refreshFunc ) = 0;
-    virtual void setAutoRefeshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;
+    virtual void setRefreshFunc( const std::function<void()> &refreshFunc ) = 0;
+    virtual void setAutoRefreshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;
     
     virtual void render() = 0;
     virtual void resize( int width, int height, float scaleFactor ) = 0;
@@ -42,14 +44,25 @@ public:
     virtual void handleMouseUp( uint8_t button, float x, float y ) = 0;
     virtual void handleMouseDrag( uint8_t button, float x, float y ) = 0;
     virtual void handleMouseWheel( float x, float y, int delta ) = 0;
-
-    // TODO: virtual void handleFileDrop( WindowRef win, int x, int y, const std::vector<fs::path> &aFiles );// const std::string &filePath ) = 0;
+    virtual void handleMouseMove( float x, float y ) = 0;
+    
+    // File drop support
+    virtual void handleFileDrop( float x, float y, const std::vector<std::string> &filePaths ) = 0;
+    
+    // Gesture handling methods for touch/touchpad support
+#ifdef ENABLE_GESTURES
+    virtual void handleSingleTap( float x, float y ) = 0;
+    virtual void handleDoubleTap( float x, float y ) = 0;
+    virtual void handlePan( float x, float y, float translationX, float translationY, float velocityX, float velocityY, int numTouches ) = 0;
+    virtual void handlePinch( int type, float x, float y, float scale ) = 0;
+    virtual void handleRotation( float x, float y, float rotation ) = 0;
+#endif
 
     virtual int getWidth() const = 0;
     virtual int getHeight() const = 0;
     virtual void setWidth( int width ) = 0;
     virtual void setHeight( int height ) = 0;
-    virtual const wchar_t* const getTitle() const = 0;
+    virtual const char* const getTitle() const = 0;
 };
 
 

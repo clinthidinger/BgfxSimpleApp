@@ -21,6 +21,12 @@
 #include <bx/pixelformat.h>
 #include <bx/timer.h>
 
+#ifdef ENABLE_GESTURES
+#include <winuser.h>
+#include <tpcshrd.h>
+#pragma comment(lib, "user32.lib")
+#endif
+
 HWND Win32Application::mHwnd = nullptr;
 int Win32Application::mFrameNum = 0;
 std::unique_ptr<Win32Application::AppType> Win32Application::mApp;
@@ -66,6 +72,14 @@ int Win32Application::Run( std::unique_ptr<AppType> app, HINSTANCE hInstance, in
         nullptr,        // We aren't using menus.
         hInstance,
         mApp.get() );
+
+    // Enable file drop support
+    DragAcceptFiles( mHwnd, TRUE );
+
+#ifdef ENABLE_GESTURES
+    // Enable touch input for gesture support
+    RegisterTouchWindow( mHwnd, 0 );
+#endif
 
     ShowWindow( mHwnd, nCmdShow );
 
@@ -161,59 +175,46 @@ LRESULT CALLBACK Win32Application::WindowProc( HWND hWnd, UINT message, WPARAM w
         }
         case WM_DESTROY:
         {
-            mApp.reset();
+            if (mApp) {
+                mApp->shutdown();
+                mApp.reset();
+            }
             PostQuitMessage( 0 ); // this triggers the WM_QUIT to break the loop
-            break;
-        }
-        case WM_DROPFILES:
-        {
-            //*
-            HDROP drop = reinterpret_cast<HDROP>( wParam );
-            char tmp[bx::kMaxFilePath];
-            WCHAR utf16[bx::kMaxFilePath];
-            // This only gets the first file.  Maybe look at cinder source to see how to do it better.
-            uint32_t result = DragQueryFileW( drop, 0, utf16, bx::kMaxFilePath );
-            BX_UNUSED( result );
-            WideCharToMultiByte( CP_UTF8, 0, utf16, -1, tmp, bx::kMaxFilePath, nullptr, nullptr );
-            //WindowHandle handle = findHandle( hwnd );
-            //m_eventQueue.postDropFileEvent( handle, tmp );
-            //mApp->handleFileDrop( filePath );
-            //*/
             break;
         }
         case WM_LBUTTONDOWN:
         {
-            mApp->handleMouseDown( 0, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseDown( 0, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[0] = 1;
             break;
         }
         case WM_LBUTTONUP:
         {
-            mApp->handleMouseUp( 0, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseUp( 0, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[0] = 0;
             break;
         }
         case WM_RBUTTONDOWN:
         {
-            mApp->handleMouseDown( 1, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseDown( 1, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[1] = 1;
             break;
         }
         case WM_RBUTTONUP:
         {
-            mApp->handleMouseUp( 1, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseUp( 1, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[1] = 0;
             break;
         }
         case WM_MBUTTONDOWN:
         {
-            mApp->handleMouseDown( 2, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseDown( 2, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[2] = 1;
             break;
         }
         case WM_MBUTTONUP:
         {
-            mApp->handleMouseUp( 2, LOWORD( lParam ), HIWORD( lParam ) );
+            mApp->handleMouseUp( 2, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
             mMouseButtonState[2] = 0;
             break;
         }
@@ -232,7 +233,11 @@ LRESULT CALLBACK Win32Application::WindowProc( HWND hWnd, UINT message, WPARAM w
                 }
                 if( mouseButton != -1 )
                 {
-                    mApp->handleMouseDrag( mouseButton, LOWORD( lParam ), HIWORD( lParam ) );
+                    mApp->handleMouseDrag( mouseButton, static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
+                }
+                else
+                {
+                    mApp->handleMouseMove( static_cast<float>(static_cast<short>(LOWORD( lParam ))), static_cast<float>(static_cast<short>(HIWORD( lParam ))) );
                 }
             }
             break;
@@ -243,12 +248,134 @@ LRESULT CALLBACK Win32Application::WindowProc( HWND hWnd, UINT message, WPARAM w
             {
                 auto fwKeys = GET_KEYSTATE_WPARAM( wParam );
                 //GET_X_LPARAM( lParam );
-                mApp->handleMouseWheel( LOWORD( lParam ),
-                                        HIWORD( lParam ),
+                mApp->handleMouseWheel( static_cast<float>(static_cast<short>(LOWORD( lParam ))),
+                                        static_cast<float>(static_cast<short>(HIWORD( lParam ))),
                                         static_cast<int>( GET_WHEEL_DELTA_WPARAM( wParam ) / static_cast<float>( WHEEL_DELTA ) ) );
             }
             break;
         }
+        case WM_DROPFILES:
+        {
+            HDROP hDrop = reinterpret_cast<HDROP>( wParam );
+            POINT pt;
+            DragQueryPoint( hDrop, &pt );
+            
+            UINT fileCount = DragQueryFileW( hDrop, 0xFFFFFFFF, nullptr, 0 );
+            std::vector<std::string> filePaths;
+            filePaths.reserve( fileCount );
+            
+            for ( UINT i = 0; i < fileCount; ++i )
+            {
+                UINT pathLength = DragQueryFileW( hDrop, i, nullptr, 0 );
+                std::vector<WCHAR> widePath( pathLength + 1 );
+                DragQueryFileW( hDrop, i, widePath.data(), pathLength + 1 );
+                
+                // Convert from wide to UTF-8
+                int utf8Length = WideCharToMultiByte( CP_UTF8, 0, widePath.data(), -1, nullptr, 0, nullptr, nullptr );
+                std::string utf8Path( utf8Length - 1, '\0' );
+                WideCharToMultiByte( CP_UTF8, 0, widePath.data(), -1, utf8Path.data(), utf8Length, nullptr, nullptr );
+                
+                filePaths.push_back( std::move( utf8Path ) );
+            }
+            
+            DragFinish( hDrop );
+            
+            if ( mApp && !filePaths.empty() )
+            {
+                mApp->handleFileDrop( static_cast<float>( pt.x ), static_cast<float>( pt.y ), filePaths );
+            }
+            break;
+        }
+#ifdef ENABLE_GESTURES
+        case WM_TOUCH:
+        {
+            UINT inputCount = LOWORD( wParam );
+            std::vector<TOUCHINPUT> inputs( inputCount );
+            
+            if ( GetTouchInputInfo( reinterpret_cast<HTOUCHINPUT>( lParam ), inputCount, inputs.data(), sizeof( TOUCHINPUT ) ) )
+            {
+                for ( const auto& input : inputs )
+                {
+                    POINT pt = { TOUCH_COORD_TO_PIXEL( input.x ), TOUCH_COORD_TO_PIXEL( input.y ) };
+                    ScreenToClient( hWnd, &pt );
+                    
+                    if ( input.dwFlags & TOUCHEVENTF_DOWN )
+                    {
+                        // Handle touch down - could be start of gesture
+                        if ( mApp )
+                        {
+                            mApp->handleSingleTap( static_cast<float>( pt.x ), static_cast<float>( pt.y ) );
+                        }
+                    }
+                    else if ( input.dwFlags & TOUCHEVENTF_MOVE )
+                    {
+                        // Handle touch move - could be pan gesture
+                        // Note: For proper gesture recognition, we'd need to track touch state
+                        // This is a simplified implementation
+                    }
+                    else if ( input.dwFlags & TOUCHEVENTF_UP )
+                    {
+                        // Handle touch up - end of gesture
+                    }
+                }
+                
+                CloseTouchInputHandle( reinterpret_cast<HTOUCHINPUT>( lParam ) );
+            }
+            break;
+        }
+        case WM_GESTURE:
+        {
+            GESTUREINFO gi;
+            gi.cbSize = sizeof( GESTUREINFO );
+            
+            if ( GetGestureInfo( reinterpret_cast<HGESTUREINFO>( lParam ), &gi ) )
+            {
+                POINT pt = { gi.ptsLocation.x, gi.ptsLocation.y };
+                ScreenToClient( hWnd, &pt );
+                
+                switch ( gi.dwID )
+                {
+                    case GID_ZOOM:
+                        if ( mApp )
+                        {
+                            // Convert zoom factor to scale
+                            float scale = static_cast<float>( gi.ullArguments ) / 65536.0f;
+                            mApp->handlePinch( 0, static_cast<float>( pt.x ), static_cast<float>( pt.y ), scale );
+                        }
+                        break;
+                        
+                    case GID_PAN:
+                        if ( mApp )
+                        {
+                            // Pan gesture - translation is in gi.ptsLocation relative to start
+                            mApp->handlePan( static_cast<float>( pt.x ), static_cast<float>( pt.y ), 
+                                           static_cast<float>( gi.ptsLocation.x ), static_cast<float>( gi.ptsLocation.y ),
+                                           0.0f, 0.0f, 1 ); // velocity = 0, numTouches = 1
+                        }
+                        break;
+                        
+                    case GID_ROTATE:
+                        if ( mApp )
+                        {
+                            // Rotation angle in radians
+                            float rotation = static_cast<float>( gi.ullArguments ) * 3.14159f / 32768.0f;
+                            mApp->handleRotation( static_cast<float>( pt.x ), static_cast<float>( pt.y ), rotation );
+                        }
+                        break;
+                        
+                    case GID_TWOFINGERTAP:
+                        if ( mApp )
+                        {
+                            mApp->handleDoubleTap( static_cast<float>( pt.x ), static_cast<float>( pt.y ) );
+                        }
+                        break;
+                }
+                
+                CloseGestureInfoHandle( reinterpret_cast<HGESTUREINFO>( lParam ) );
+            }
+            break;
+        }
+#endif
         default:
         {
             return DefWindowProc( hWnd, message, wParam, lParam );

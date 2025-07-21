@@ -72,7 +72,7 @@
         view.contentScaleFactor = screen.nativeScale;
         view.drawableSize = drawableSize;
         
-        [self _setupGestures:view];
+        //[self _setupGestures:view];
         
         //_bgfxApp = new BgfxApp( view.drawableSize.width, view.drawableSize.height, (__bridge void *)view.layer, (__bridge void *)view.device );
         auto *app = BgfxiOSAppLauncher::instance().getApp();
@@ -126,6 +126,7 @@
     app->render( view.drawableSize.width, view.drawableSize.height, view.contentScaleFactor, [self isPortrait] );
 }
 
+/*
 // Should be in the GameViewController.
 - (void)_setupGestures:(nonnull MTKView *)view
 {
@@ -275,5 +276,5 @@
     app->handleRotation( anchor.x, anchor.y, gestureRecognizer.rotation );
     [gestureRecognizer setRotation:0.0f];
 }
-
+*/
 @end
