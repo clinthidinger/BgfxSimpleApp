@@ -1,5 +1,38 @@
 cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
+
+if(APPLE AND BUILD_IOS)# AND NOT CMAKE_TOOLCHAIN_FILE)
+
+	# set(CMAKE_SYSTEM_NAME iOS)
+	# set(CMAKE_OSX_DEPLOYMENT_TARGET "15.5")  # Minimum iOS version
+	# set(CMAKE_OSX_ARCHITECTURES arm64)     # For modern iPads
+	# set(CMAKE_XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2")  # 1=iPhone, 2=iPad, 1,2=Universal
+	# #set(CMAKE_OSX_SYSROOT iphonesimulator9.2)
+
+	# #set(CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "YOUR_TEAM_ID")
+	# #set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer")
+	# set(CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET "18.5")
+	# #set(CMAKE_OSX_ARCHITECTURES arm64)
+	# set(CMAKE_XCODE_ATTRIBUTE_SDKROOT iphoneos)
+	
+	
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ios.toolchain.cmake")
+	include(${CMAKE_TOOLCHAIN_FILE})
+
+	# set_target_properties(${PROJECT_NAME} PROPERTIES
+	# 	MACOSX_BUNDLE TRUE
+	# 	MACOSX_BUNDLE_GUI_IDENTIFIER "com.yourcompany.yourapp"
+	# 	MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
+	# 	MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+		
+	# 	# Enable universal app (iPhone + iPad)
+	# 	XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"  # 1=iPhone, 2=iPad, 1,2=Universal
+		
+	# 	# Set supported interface orientations for iPad
+	# 	XCODE_ATTRIBUTE_UISupportedInterfaceOrientations_ipad "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortraitUpsideDown"
+	# )
+endif()
+
 PROJECT(bgfx-simple-app LANGUAGES CXX C OBJCXX)
 
 option(ENABLE_IMGUI "Enable DearImGui" on)
@@ -7,6 +40,9 @@ option(ENABLE_NANOVG "Enable nanoVG" on)
 option(ENABLE_CINDER_LITE "Enable Cinder-Lite" on)
 option(BUILD_IOS "Build for iOS instead of OSX when on Apple platforms" off)
 option(ENABLE_GESTURES "Enable gestures for desktop platforms" off)
+
+# Apply iOS toolchain if BUILD_IOS is enabled and no toolchain is already set
+
 
 set(BGFX_CMAKE_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake)
 set(BGFX_CMAKE_INSTALl_DIR ${BGFX_CMAKE_DIR}/install)
@@ -335,8 +371,8 @@ set(CINDER_NANOVG_SRC
 )
 
 set(SRC 
-	src/BgfxSimpleApp.cpp
-	src/BgfxSimpleApp.h
+	src/BasicApp.cpp
+	src/BasicApp.h
 	#src/ViewIdTestApp.cpp
 	#src/ViewIdTestApp.h
 	#src/BgfxRect.cpp
@@ -348,6 +384,18 @@ set(SRC
 	app/IBgfxApp.h
 	app/BgfxAppLauncher.h
 )
+
+# if (APPLE AND ${BUILD_IOS})
+# 	set(SRC ${SRC} 
+# 		src/MyTabletApp.cpp
+# 		src/MyTabletApp.h
+# 	)
+# else()
+# 	set(SRC ${SRC} 
+# 		src/MyDesktopApp.cpp
+# 		src/MyDesktopApp.h
+# 	)
+# endif()
 
 if(WIN32)
 	set(SRC ${SRC}
@@ -363,6 +411,8 @@ if(APPLE)
 			app/ios/AppDelegate.h
 			app/ios/AppDelegate.mm
 			app/ios/BgfxiOSAppLauncher.h
+			app/ios/BgfxiOSApp.h
+			app/ios/BgfxiOSApp.mm
 			app/ios/GameViewController.h
 			app/ios/GameViewController.mm
 			app/ios/GestureDelegate.h
@@ -462,6 +512,7 @@ if(APPLE)
 			app/ios/GestureDelegate.mm
 			app/ios/FXBlurView/FXBlurView.m
 			app/ios/ImageCropView.m
+			app/ios/BgfxiOSApp.mm
 			PROPERTIES
 			COMPILE_FLAGS "-fobjc-arc"
 		)
@@ -500,6 +551,7 @@ if(APPLE)
 			"-framework Foundation"
 			"-framework IOKit"
 		)
+		set_target_properties(${PROJECT_NAME} PROPERTIES XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "iPhone,iPad")
 	endif()
 endif()
 

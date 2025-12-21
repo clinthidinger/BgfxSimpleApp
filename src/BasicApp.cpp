@@ -1,16 +1,18 @@
 //
-//  BgfxSimpleApp.cpp
+//  BasicApp.cpp
 //  Test_Game
 //
 //  Created by clint hidinger on 1/2/20.
 //  Copyright � 2020 me. All rights reserved.
 //
 
-#include "BgfxSimpleApp.h"
+#include "BasicApp.h"
 #include <assert.h>
 #include <cstring>
 #include <iostream>
-#include "bx/timer.h"
+//#include "bx/timer.h"
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 
 
 // Note: only necessary without imgui.
@@ -19,7 +21,7 @@
 //#define STB_TRUETYPE_IMPLEMENTATION
 //#include <stb/stb_truetype.h>
 
-void BgfxSimpleApp::init( int width, int height, float scaleFactor, void *nwh, void *device )
+void BasicApp::init( int width, int height, float scaleFactor, void *nwh, void *device )
 {
     mWidth = width;
     mHeight = height;
@@ -63,12 +65,12 @@ void BgfxSimpleApp::init( int width, int height, float scaleFactor, void *nwh, v
     mCaps = bgfx::getCaps();   
 }
 
-BgfxSimpleApp::~BgfxSimpleApp()
+BasicApp::~BasicApp()
 {
     //shutdown();
 }
 
-void BgfxSimpleApp::render()
+void BasicApp::render()
 {
     bgfx::setViewRect( mDefaultViewId, 0, 0, uint16_t( mWidth ), uint16_t( mHeight ) );
 
@@ -87,7 +89,7 @@ void BgfxSimpleApp::render()
 }
 
 
-void BgfxSimpleApp::update()
+void BasicApp::update()
 {
     using namespace std::chrono;
     auto nowTime = system_clock::now();
@@ -97,117 +99,161 @@ void BgfxSimpleApp::update()
     mLastFrameTime = nowTime;
 }
 
-void BgfxSimpleApp::shutdown()
+void BasicApp::shutdown()
 {
     std::cerr << "shutdown\n"; //??? who calls?
     bgfx::shutdown(); //!!! SHOULD be called by App hooks.
 }
 
-void BgfxSimpleApp::resize( int width, int height, float scaleFactor )
+void BasicApp::resize( int width, int height, float scaleFactor )
 {
     mWidth = width;
     mHeight = height;
     std::cerr << "resize: " << width << ", " << height << ", " << scaleFactor << "\n";
 }
 
-bool BgfxSimpleApp::enableAutoRefresh()
+bool BasicApp::enableAutoRefresh()
 {
     //return false;
     return true;
 }
 
-void BgfxSimpleApp::handleKeyDown( uint16_t key, int keyMods )
+#if !defined(TARGET_OS_IPHONE) 
+
+void BasicApp::handleKeyDown( uint16_t key, int keyMods )
 {
 
 }
 
-void BgfxSimpleApp::handleKeyUp( uint16_t key, int keyMods )
+void BasicApp::handleKeyUp( uint16_t key, int keyMods )
 {
 
 }
 
-void BgfxSimpleApp::handleMouseDown( uint8_t button, float x, float y )
+void BasicApp::handleMouseDown( uint8_t button, float x, float y )
 {
 
 }
 
-void BgfxSimpleApp::handleMouseUp( uint8_t button, float x, float y )
+void BasicApp::handleMouseUp( uint8_t button, float x, float y )
 {
 
 }
 
-void BgfxSimpleApp::handleMouseDrag( uint8_t button, float x, float y )
+void BasicApp::handleMouseDrag( uint8_t button, float x, float y )
 {
 
 }
 
-void BgfxSimpleApp::handleMouseWheel( float x, float y, int delta )
+void BasicApp::handleMouseWheel( float x, float y, int delta )
 {
 
 }
 
-void BgfxSimpleApp::handleMouseMove( float x, float y )
-{
-    
-}
-
-int BgfxSimpleApp::getWidth() const
-{
-    return mWidth;
-}
-
-int BgfxSimpleApp::getHeight() const
-{
-    return mHeight;
-}
-
-void BgfxSimpleApp::setWidth( int width )
-{
-    mWidth = width;
-}
-
-void BgfxSimpleApp::setHeight( int height )
-{
-    mHeight = height;
-}
-
-void BgfxSimpleApp::setRefreshFunc( const std::function<void()>& refreshFunc )
-{
-    mRefreshFunc = refreshFunc;
-}
-
-void BgfxSimpleApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc )
-{
-    mAutoRefreshStateFunc = autoRefreshStateFunc;
-}
-
-#ifdef __APPLE__
-void BgfxSimpleApp::didFinishLaunching()
-{
-    
-}
-
-void BgfxSimpleApp::willTerminate()
-{
-    
-}
-void BgfxSimpleApp::didBecomeActive()
-{
-    
-}
-
-void BgfxSimpleApp::willResignActive()
+void BasicApp::handleMouseMove( float x, float y )
 {
     
 }
 
 #endif
 
-const char* const BgfxSimpleApp::getTitle() const
+#if defined(ENABLE_GESTURES) || defined(TARGET_OS_IPHONE)
+
+//void BasicApp::handleSwipe( float x, float y, int direction )
+//{
+//
+//}
+void BasicApp::handleSingleTap( float x, float y )
+{
+
+}
+
+void BasicApp::handleDoubleTap( float x, float y )
+{
+
+}
+
+void BasicApp::handlePan( float x, float y, float translationX, float translationY, float velocityX, float velocityY, int numTouches )
+{
+
+}
+
+//void BasicApp::handlePinch( int type, float x, float y, float scale )
+//{
+//
+//}
+//
+//void BasicApp::handleRotation( float x, float y, float rotation )
+//{
+//
+//}
+
+#endif
+
+#if !defined(TARGET_OS_IPHONE)
+
+int BasicApp::getWidth() const
+{
+    return mWidth;
+}
+
+int BasicApp::getHeight() const
+{
+    return mHeight;
+}
+
+void BasicApp::setWidth( int width )
+{
+    mWidth = width;
+}
+
+void BasicApp::setHeight( int height )
+{
+    mHeight = height;
+}
+
+const char* const BasicApp::getTitle() const
 {
     return "BGFX Simple App";
 }
 
+#endif
+
+void BasicApp::setRefreshFunc( const std::function<void()>& refreshFunc )
+{
+    mRefreshFunc = refreshFunc;
+}
+
+void BasicApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc )
+{
+    mAutoRefreshStateFunc = autoRefreshStateFunc;
+}
+
+#ifdef __APPLE__
+//
+//void BasicApp::didFinishLaunching()
+//{
+//    
+//}
+//
+//void BasicApp::willTerminate()
+//{
+//    
+//}
+//
+//void BasicApp::didBecomeActive()
+//{
+//    
+//}
+//
+//void BasicApp::willResignActive()
+//{
+//    
+//}
+
+#endif
+
+
 #ifdef _WIN32
-BgfxWin32Main( BgfxSimpleApp )
+BgfxWin32Main( BasicApp )
 #endif

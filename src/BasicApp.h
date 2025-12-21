@@ -9,27 +9,29 @@
 #include <functional>
 #include <map>
 #include <memory>
-#include <bgfx/platform.h>
-#include <bx/file.h>
+//#include <bgfx/platform.h>
+//#include <bx/file.h>
+#include <bgfx/bgfx.h>
 #ifdef _WIN32
 #include "app/win32/IBgfxWin32App.h"
-#define IBGFX_BASE_APP IBgfxWin32App
+#define BGFX_BASE_APP IBgfxWin32App
 #endif
 #ifdef __APPLE__
 #include <TargetConditionals.h>
     #if TARGET_OS_IPHONE
-        #include "app/ios/IBgfxiOSApp.h"
-        #define IBGFX_BASE_APP IBgfxiOSApp
+        #include "app/ios/BgfxiOSApp.h"
+        #define BGFX_BASE_APP BgfxiOSApp
     #elif TARGET_OS_MAC
         #include "app/osx/IBgfxOSXApp.h"
-        #define IBGFX_BASE_APP IBgfxOSXApp
+        #define BGFX_BASE_APP IBgfxOSXApp
     #endif
 #endif
 
-class BgfxSimpleApp : public IBGFX_BASE_APP
+class BasicApp : public BGFX_BASE_APP
 {
 public:
-    ~BgfxSimpleApp() override;
+    ~BasicApp() override;
+    //  virtual void init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait ) = 0;
     void init( int width, int height, float scaleFactor, void* nwh, void* device ) override;
     void render() override;
     void resize( int width, int height, float scaleFactor ) override;
@@ -39,7 +41,9 @@ public:
 
     void setRefreshFunc( const std::function<void()>& refreshFunc ) override;
     void setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc ) override;
+    void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) override;
 
+#if !defined(TARGET_OS_IPHONE) // WHat if you they hoooked up a keyboard and mouse to iPad???
     void handleKeyDown( uint16_t key, int keyMods ) override;
     void handleKeyUp( uint16_t key, int keyMods ) override;
     void handleMouseDown( uint8_t button, float x, float y ) override;
@@ -53,12 +57,26 @@ public:
     void setWidth( int width ) override;
     void setHeight( int height ) override;
     const char* const getTitle() const override;
+#endif
 
 #ifdef __APPLE__
-    void didFinishLaunching() override;
-    void willTerminate() override;
-    void didBecomeActive() override;
-    void willResignActive() override;
+
+#if defined(ENABLE_GESTURES) || defined(TARGET_OS_IPHONE)
+    //void handleSwipe( float x, float y, int direction ) override;
+    void handleSingleTap( float x, float y ) override;
+    void handleDoubleTap( float x, float y ) override;
+    void handlePan( float x, float y, float translationX, float translationY, float velocityX, float velocityY, int numTouches ) override;
+    // int type ???
+    //void handlePinch( float x, float y, float scale ) override;
+    //void handleRotation( float x, float y, float rotation ) override;
+#endif
+    
+//    void didFinishLaunching() override;
+//    //!!!void willTerminate() override;
+//    void willResignActive() override;
+//    void didBecomeActive() override;
+//    void didEnterBackground() override;
+//    void willEnterForeground() override;
 #endif
     
 private:

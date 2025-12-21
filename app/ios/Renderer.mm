@@ -10,10 +10,13 @@
 #import <ModelIO/ModelIO.h>
 #import "Renderer.h"
 #import "GestureDelegate.h"
-#import "ShaderTypes.h"
+//#import "ShaderTypes.h"
 #include "BgfxiOSAppLauncher.h"
 
 //static const NSUInteger MaxBuffersInFlight = 3;
+
+//self.view.paused = YES;
+//self.view.manualRefreshMode = YES;
 
 @implementation Renderer
 {
@@ -82,8 +85,8 @@
             // Turn off auto redraw.  Do view.setNeedsDisplay() to refresh.
             view.paused = true;
             view.enableSetNeedsDisplay = true;
-            app->setRefeshFunc( [view] () { [view setNeedsDisplay]; } );
-            app->setRefeshAtTimeFunc( [view, self] (float seconds) {
+            app->setRefreshFunc( [view] () { [view setNeedsDisplay]; } );
+            app->setRefreshAtTimeFunc( [view, self] (float seconds) {
                 if( _timer )
                 {
                     [_timer invalidate];
@@ -95,7 +98,7 @@
                      [view setNeedsDisplay];
                 }];
              } );
-            app->setAutoRefeshStateFunc( [view] (bool state) {
+            app->setAutoRefreshStateFunc( [view] (bool state) {
                 view.paused = !state; view.enableSetNeedsDisplay = !state;
             } );
         }
@@ -123,7 +126,7 @@
 {
     auto *app = BgfxiOSAppLauncher::instance().getApp();
     app->update();
-    app->render( view.drawableSize.width, view.drawableSize.height, view.contentScaleFactor, [self isPortrait] );
+    app->render();// view.drawableSize.width, view.drawableSize.height, view.contentScaleFactor, [self isPortrait] );
 }
 
 /*

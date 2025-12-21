@@ -82,16 +82,21 @@
     // Setup gesture recognizers
     [self setupGestures];
     
+    // Setup keyboard and mouse handling
+    [self setupKeyboardAndMouse];
+    
      //_imageCropView = [ImageCropView alloc];
     
     // app->setRefeshFunc( [view] () { [view setNeedsDisplay]; } );
     _imageRawDataSize = 0;
+#ifdef ENABLE_CAMERA
     BgfxiOSAppLauncher::instance().getApp()->setShowImagePickerPhotoFunc([self] () {
         [self showImagePickerPhotos];
     });
     BgfxiOSAppLauncher::instance().getApp()->setShowImagePickerCameraFunc([self] () {
         [self showImagePickerCamera];
     });
+#endif
 //    BgfxiOSAppLauncher::instance().getApp()->setShowImageCropperFunc([self] () {
 //        [self showImageCropper];
 //    });
@@ -162,9 +167,12 @@
     
     switch (cameraStatus) {
         case AVAuthorizationStatusAuthorized:
+        {
             [self presentImagePicker:sourceType];
             break;
+        }
         case AVAuthorizationStatusNotDetermined:
+        {
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (granted) {
@@ -175,9 +183,12 @@
                 });
             }];
             break;
+        }
         default:
+        {
             [self showPermissionDeniedAlert:@"Camera"];
             break;
+        }
     }
 }
 
@@ -187,9 +198,12 @@
     switch (photoStatus) {
         case PHAuthorizationStatusAuthorized:
         case PHAuthorizationStatusLimited:
+        {
             [self presentImagePicker:sourceType];
             break;
+        }
         case PHAuthorizationStatusNotDetermined:
+        {
             [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
                 dispatch_async(dispatch_get_main_queue(), ^{
                     if (status == PHAuthorizationStatusAuthorized || status == PHAuthorizationStatusLimited) {
@@ -200,9 +214,12 @@
                 });
             }];
             break;
+        }
         default:
+        {
             [self showPermissionDeniedAlert:@"Photo Library"];
             break;
+        }
     }
 }
 
@@ -241,6 +258,27 @@
     [alert addAction:cancelAction];
     
     [self presentViewController:alert animated:YES completion:nil];
+}
+
+#pragma mark - Input Setup
+
+- (void)setupKeyboardAndMouse {
+    // Enable keyboard support for external keyboards
+    if (@available(iOS 13.4, *)) {
+        // Add support for pointer interactions (trackpad/mouse on iPad)
+        UIPanGestureRecognizer *pointerPan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePointerPan:)];
+        pointerPan.allowedScrollTypesMask = UIScrollTypeMaskAll;
+        pointerPan.delegate = self;
+        [self.view addGestureRecognizer:pointerPan];
+        
+        // Add hover gesture for mouse move events
+        UIHoverGestureRecognizer *hover = [[UIHoverGestureRecognizer alloc] initWithTarget:self action:@selector(handleHover:)];
+        [self.view addGestureRecognizer:hover];
+    }
+    
+    // Make view first responder to receive keyboard events
+    [self.view becomeFirstResponder];
+    self.view.userInteractionEnabled = YES;
 }
 
 #pragma mark - Gesture Setup
@@ -346,6 +384,95 @@
     return NO;
 }
 
+#pragma mark - Keyboard and Mouse Handlers
+
+- (void)handlePointerPan:(UIPanGestureRecognizer *)recognizer {
+    CGPoint location = [recognizer locationInView:self.view];
+    
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        if (recognizer.state == UIGestureRecognizerStateBegan) {
+            app->handleMouseDown(location.x, location.y, 0); // Left mouse button
+        } else if (recognizer.state == UIGestureRecognizerStateEnded || 
+                   recognizer.state == UIGestureRecognizerStateCancelled) {
+            app->handleMouseUp(location.x, location.y, 0); // Left mouse button
+        } else if (recognizer.state == UIGestureRecognizerStateChanged) {
+            app->handleMouseMove(location.x, location.y);
+        }
+    }
+}
+
+- (void)handleHover:(UIHoverGestureRecognizer *)recognizer API_AVAILABLE(ios(13.0)) {
+    CGPoint location = [recognizer locationInView:self.view];
+    
+    IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+    if (app) {
+        app->handleMouseMove(location.x, location.y);
+    }
+}
+
+// Override to handle keyboard input
+- (BOOL)canBecomeFirstResponder {
+    return YES;
+}
+
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    for (UIPress *press in presses) {
+        UIKey *key = press.key;
+        if (key) {
+            IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+            if (app) {
+                app->handleKeyDown((int)key.keyCode);
+            }
+        }
+    }
+    [super pressesBegan:presses withEvent:event];
+}
+
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
+    for (UIPress *press in presses) {
+        UIKey *key = press.key;
+        if (key) {
+            IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+            if (app) {
+                app->handleKeyUp((int)key.keyCode);
+            }
+        }
+    }
+    [super pressesEnded:presses withEvent:event];
+}
+
+// Override to handle scroll events as mouse wheel
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    if (@available(iOS 13.4, *)) {
+        CGPoint contentOffset = scrollView.contentOffset;
+        IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
+        if (app) {
+            // Convert scroll offset to wheel delta
+            app->handleMouseWheel(0, 0, contentOffset.x, contentOffset.y);
+        }
+    }
+}
+
+
+- (NSString*)getUserDocumentsPath:(NSString*)filename {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documentsDirectory = [paths objectAtIndex:0];
+    return [documentsDirectory stringByAppendingPathComponent:filename];
+}
+
+- (NSString*)getCachePath:(NSString*)filename {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
+    NSString *cachesDirectory = [paths objectAtIndex:0];
+    return [cachesDirectory stringByAppendingPathComponent:filename];
+}
+
+// For truly temporary files
+- (NSString*)getTempPath:(NSString*)filename {
+    NSString *tmpDirectory = NSTemporaryDirectory();
+    return [tmpDirectory stringByAppendingPathComponent:filename];
+}
+
 #pragma mark UIImagePickerControllerDelegate
 
 
@@ -413,6 +540,7 @@
     // Extract pixel data from the image
     // Reference: https://stackoverflow.com/questions/448125/how-to-get-pixel-data-from-a-uiimage-cocoa-touch-or-cgimage-core-graphics
     // Get image dimensions
+    CGImageRef imageRef = [image CGImage];
     NSUInteger width = CGImageGetWidth(imageRef);
     NSUInteger height = CGImageGetHeight(imageRef);
     
@@ -441,10 +569,12 @@
         CGContextRelease(context);
         
         // Pass the pixel data to the app
+#ifdef ENABLE_CAMERA
         IBgfxiOSApp *app = BgfxiOSAppLauncher::instance().getApp();
         if (app) {
             app->setPickedImage(_imageRawData.get(), width, height, bytesPerPixel);
         }
+#endif
     } else {
         NSLog(@"Error: Failed to create bitmap context for image processing");
     }

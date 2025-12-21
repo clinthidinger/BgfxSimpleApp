@@ -27,22 +27,25 @@ public:
     virtual ~IBgfxiOSApp() = default;
     
     virtual void init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait ) = 0;
-    virtual void setRefeshFunc( const std::function<void()> &refreshFunc ) = 0;
-    virtual void setRefeshAtTimeFunc( const std::function<void(float)> &refreshFunc ) = 0;
-    virtual void setAutoRefeshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;
+    virtual void setRefreshFunc( const std::function<void()> &refreshFunc ) = 0;
+    virtual void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) = 0;
+    virtual void setAutoRefreshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;
+#ifdef ENABLE_CAMERA
     virtual void setShowImagePickerPhotoFunc( const std::function<void()> &showImagePickerFunc ) = 0;
     virtual void setShowImagePickerCameraFunc( const std::function<void()> &showImagePickerFunc ) = 0;
     //virtual void setShowImageCropperFunc( const std::function<void()> &showImageCropperFunc ) = 0;
     virtual void setPickedImage( const uint8_t *data, size_t width, size_t height, size_t bytesPerPixel ) = 0;
-    
+ #endif   
+
     virtual void setEnableIndicatorFunc( const std::function<void( bool )> &enableIndicatorFunc ) = 0;
     
-    virtual void render( int width, int height, float scaleFactor, bool isPortrait ) = 0;
+    virtual void render() = 0;
     virtual void resize( int width, int height, float scaleFactor ) = 0;
     virtual void update() = 0;
     virtual void shutdown() = 0;
     virtual bool enableAutoRefresh() = 0;
     
+    virtual void handleChangeOrientation() = 0;
     virtual void handleSwipe( float x, float y, int direction ) = 0;
     virtual void handleSingleTap( float x, float y ) = 0;
     virtual void handleDoubleTap( float x, float y ) = 0;
@@ -53,9 +56,31 @@ public:
     virtual void handlePinch( float x, float y, float scale ) = 0;
     virtual void handleRotation( float x, float y, float rotation ) = 0;
     
+    virtual void handleKeyDown( int keyCode ) = 0;
+    virtual void handleKeyUp( int keyCode ) = 0;
+    virtual void handleMouseDown( float x, float y, int button ) = 0;
+    virtual void handleMouseUp( float x, float y, int button ) = 0;
+    virtual void handleMouseMove( float x, float y ) = 0;
+    virtual void handleMouseWheel( float x, float y, float deltaX, float deltaY ) = 0;
+    
+    virtual void viewDidLoad() = 0;
+    virtual void viewWillAppear() = 0;
+    virtual void viewWillDisappear() = 0;
+    virtual void viewDidDisappear() = 0;
+    virtual void viewWillTransitionToSize() = 0;
+    virtual void viewDidLayoutSubviews() = 0;
+    virtual void applicationDidBecomeActive() = 0;
+    virtual void applicationWillResignActive() = 0;
+    virtual void applicationDidEnterBackground() = 0;
+    virtual void applicationWillEnterForeground() = 0;
+    virtual void applicationDidFinishLaunching() = 0;
+    virtual void didReceivememoryWarning() = 0;
+
+    /*
     virtual void didFinishLaunching() = 0;
     virtual void willResignActive() = 0;
     virtual void didEnterBackground() = 0;
     virtual void willEnterForeground() = 0;
     virtual void didBecomeActive() = 0;
+    */
 };
