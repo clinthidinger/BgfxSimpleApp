@@ -500,7 +500,19 @@ if(ENABLE_CINDER_LITE)
 	set(SRC ${SRC} ${CINDER_LITE_SRC} ${LIBTESS2_SRC} ${ZLIB_SRC})
 endif(ENABLE_CINDER_LITE)
 
-add_executable(${PROJECT_NAME} ${SRC})
+add_executable(${PROJECT_NAME} MACOSX_BUNDLE ${SRC})
+
+# Configure iOS bundle properties
+if(APPLE AND BUILD_IOS)
+	set_target_properties(${PROJECT_NAME} PROPERTIES
+		MACOSX_BUNDLE TRUE
+		MACOSX_BUNDLE_GUI_IDENTIFIER "com.yourcompany.bgfx-simple-app"
+		MACOSX_BUNDLE_BUNDLE_VERSION "1.0"
+		MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
+		XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2"  # 2=iPad
+		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.yourcompany.bgfx-simple-app"
+	)
+endif()
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC BX_CONFIG_DEBUG=${BX_CONFIG_DEBUG})
 target_compile_definitions( ${PROJECT_NAME} PUBLIC 
