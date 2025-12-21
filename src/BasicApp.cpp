@@ -219,6 +219,11 @@ const char* const BasicApp::getTitle() const
 
 #endif
 
+void BasicApp::setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc )
+{
+
+}
+
 void BasicApp::setRefreshFunc( const std::function<void()>& refreshFunc )
 {
     mRefreshFunc = refreshFunc;
@@ -257,3 +262,4 @@ void BasicApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoR
 #ifdef _WIN32
 BgfxWin32Main( BasicApp )
 #endif
+BgfxMain( BasicApp )

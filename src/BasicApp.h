@@ -40,8 +40,9 @@ public:
     bool enableAutoRefresh() override;
 
     void setRefreshFunc( const std::function<void()>& refreshFunc ) override;
-    void setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc ) override;
     void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) override;
+    void setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc ) override;
+    //void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) override;
 
 #if !defined(TARGET_OS_IPHONE) // WHat if you they hoooked up a keyboard and mouse to iPad???
     void handleKeyDown( uint16_t key, int keyMods ) override;

@@ -11,4 +11,4 @@
 #include "BgfxAppLauncher.h"
 #include "IBgfxiOSApp.h"
 
-using BgfxiOSAppLauncher = BgfxAppLauncher<IBgfxiOSApp>;
+using BgfxiOSAppLauncher = BgfxAppLauncher<class IBgfxiOSApp>;

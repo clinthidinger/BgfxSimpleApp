@@ -12,7 +12,7 @@
 //#include "BasicApp.h"
 #include "BgfxiOSApp.h"
 
-BgfxMain()
+//BgfxMain()
 
 /*
 int main(int argc, char * argv[]) 

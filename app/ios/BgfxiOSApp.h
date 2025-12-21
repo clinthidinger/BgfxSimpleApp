@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IBgfxiOSApp.h"
+#include "BgfxiOSAppLauncher.h"
 
 class BgfxiOSApp : public IBgfxiOSApp
 {
@@ -61,8 +62,8 @@ public:
 
 int BgfxiOSMain( int argc, char *argv[] );
 //!!! WHO
-#define BgfxMain() int main( int argc, char *argv[] ) \
+#define BgfxMain( MyAppName ) int main( int argc, char *argv[] ) \
 { \
-    BgfxiOSAppLauncher::instance().setApp( new BgfxiOSApp() ); \
+    BgfxiOSAppLauncher::instance().setApp( new MyAppName() ); \
     return  BgfxiOSMain( argc, argv );\
 }

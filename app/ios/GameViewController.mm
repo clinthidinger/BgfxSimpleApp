@@ -55,6 +55,13 @@
     return _indicator;
 }
 
+- (void)loadView
+{
+    // Create MTKView as the main view
+    MTKView *mtkView = [[MTKView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    self.view = mtkView;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];

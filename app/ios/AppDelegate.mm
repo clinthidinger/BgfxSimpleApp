@@ -7,6 +7,7 @@
 //
 
 #import "AppDelegate.h"
+#import "GameViewController.h"
 #include "BgfxiOSAppLauncher.h"
 
 @interface AppDelegate ()
@@ -18,6 +19,17 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+
+    // Create window
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+
+    // Create and set root view controller
+    GameViewController *viewController = [[GameViewController alloc] init];
+    self.window.rootViewController = viewController;
+
+    // Make window visible
+    [self.window makeKeyAndVisible];
+
     auto *app = BgfxiOSAppLauncher::instance().getApp();
     app->applicationDidFinishLaunching();
     return YES;

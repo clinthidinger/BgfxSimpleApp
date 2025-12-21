@@ -1,5 +1,7 @@
 #include "BgfxiOSApp.h"
 #import "AppDelegate.h"
+#include <bgfx/bgfx.h>
+#include <bgfx/platform.h>
 
 //*
 //int BgfxiOSMain()
