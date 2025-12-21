@@ -103,7 +103,10 @@ void BasicApp::update()
 void BasicApp::shutdown()
 {
     std::cerr << "shutdown\n"; //??? who calls?
+#if !TARGET_OS_IPHONE
     bgfx::shutdown(); //!!! SHOULD be called by App hooks.
+#endif
+    // Note: Skip bgfx::shutdown() on iOS to avoid SIGTERM/deadlock
 }
 
 void BasicApp::resize( int width, int height, float scaleFactor )

@@ -9,7 +9,7 @@ import MetalKit
 
 class Renderer: NSObject, MTKViewDelegate {
     private var metalView: MTKView
-    private var basicApp: UnsafeMutableRawPointer?  // Points to C++ BasicApp
+    var basicApp: UnsafeMutableRawPointer?  // Points to C++ BasicApp (internal for gesture access)
 
     init(metalView: MTKView) {
         self.metalView = metalView
