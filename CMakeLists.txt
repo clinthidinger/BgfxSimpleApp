@@ -429,24 +429,32 @@ endif(WIN32)
 
 if(APPLE)
 	if(BUILD_IOS)
+		# Enable Swift
+		enable_language(Swift)
+
+		# Set Swift language version
+		set(CMAKE_Swift_LANGUAGE_VERSION 5.0)
+
+		# Swift source files
+		set(SWIFT_SOURCES
+			app/ios/BgfxSimpleApp.swift
+			app/ios/ContentView.swift
+			app/ios/MetalView.swift
+			app/ios/Renderer.swift
+		)
+
+		# Mark Swift files explicitly
+		set_source_files_properties(${SWIFT_SOURCES} PROPERTIES LANGUAGE Swift)
+
 		set(SRC ${SRC}
-			app/ios/AppDelegate.h
-			app/ios/AppDelegate.mm
-			app/ios/BgfxiOSAppLauncher.h
-			app/ios/BgfxiOSApp.h
-			app/ios/BgfxiOSApp.mm
-			app/ios/GameViewController.h
-			app/ios/GameViewController.mm
-			app/ios/GestureDelegate.h
-			app/ios/GestureDelegate.mm
-			app/ios/IBgfxiOSApp.h
-			app/ios/ImageCropView.h
-			app/ios/ImageCropView.m
-			app/ios/Renderer.h
-			app/ios/Renderer.mm
-			app/ios/main.mm
-			app/ios/FXBlurView/FXBlurView.h
-			app/ios/FXBlurView/FXBlurView.m
+			${SWIFT_SOURCES}
+
+			# Objective-C++ bridge
+			app/ios/BasicAppBridge.h
+			app/ios/BasicAppBridge.mm
+
+			# Bridging header
+			app/ios/BgfxSimpleApp-Bridging-Header.h
 		)
 	else()
 		set(SRC ${SRC}
@@ -511,6 +519,36 @@ if(APPLE AND BUILD_IOS)
 		MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
 		XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2"  # 2=iPad
 		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.yourcompany.bgfx-simple-app"
+
+		# Swift settings
+		XCODE_ATTRIBUTE_SWIFT_VERSION "5.0"
+		XCODE_ATTRIBUTE_SWIFT_OBJC_BRIDGING_HEADER "${CMAKE_SOURCE_DIR}/app/ios/BgfxSimpleApp-Bridging-Header.h"
+		XCODE_ATTRIBUTE_CLANG_ENABLE_MODULES YES
+		XCODE_ATTRIBUTE_ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES YES
+		XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks"
+		XCODE_ATTRIBUTE_SWIFT_OPTIMIZATION_LEVEL "-Onone"
+		XCODE_ATTRIBUTE_ENABLE_TESTABILITY YES
+		XCODE_ATTRIBUTE_PRODUCT_MODULE_NAME "bgfx_simple_app"
+
+		# Don't use Swift linker - use clang with Swift libs
+		LINKER_LANGUAGE CXX
+		XCODE_ATTRIBUTE_OTHER_LDFLAGS "-Xlinker -rpath -Xlinker @executable_path/Frameworks -Xlinker -rpath -Xlinker /usr/lib/swift"
+	)
+
+	# Explicitly link Swift libraries for iOS simulator
+	target_link_libraries(${PROJECT_NAME} PUBLIC
+		"-L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/iphonesimulator"
+		"-lswiftCore"
+		"-lswiftCoreFoundation"
+		"-lswiftCoreGraphics"
+		"-lswiftDarwin"
+		"-lswiftDispatch"
+		"-lswiftFoundation"
+		"-lswiftMetal"
+		"-lswiftObjectiveC"
+		"-lswiftQuartzCore"
+		"-lswiftSwiftOnoneSupport"
+		"-lswiftUIKit"
 	)
 endif()
 

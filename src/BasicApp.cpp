@@ -34,10 +34,11 @@ void BasicApp::init( int width, int height, float scaleFactor, void *nwh, void *
     platformData.backBufferDS = nullptr;
     bgfx::setPlatformData( platformData );
 
-    //bgfx::renderFrame();
+    // On iOS, call renderFrame before init to set up render thread properly
+    bgfx::renderFrame();
 
     bgfx::Init init;
-    init.type = bgfx::RendererType::Enum::Count;//bgfx::RendererType::Metal;
+    init.type = bgfx::RendererType::Metal;  // Explicitly use Metal on iOS
     init.vendorId = BGFX_PCI_ID_NONE;//args.m_pciId;
     init.resolution.width = width;
     init.resolution.height = height;
@@ -262,4 +263,8 @@ void BasicApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoR
 #ifdef _WIN32
 BgfxWin32Main( BasicApp )
 #endif
+
+// Note: SwiftUI handles main entry point on iOS, so don't use BgfxMain macro
+#if !defined(TARGET_OS_IPHONE)
 BgfxMain( BasicApp )
+#endif
