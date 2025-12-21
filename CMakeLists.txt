@@ -19,6 +19,15 @@ if(APPLE AND BUILD_IOS)# AND NOT CMAKE_TOOLCHAIN_FILE)
     set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/ios.toolchain.cmake")
 	include(${CMAKE_TOOLCHAIN_FILE})
 
+	set(CMAKE_SYSTEM_NAME iOS)
+  	set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+  	set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0)
+  	set(BGFX_BUILD_EXAMPLES OFF)
+  	set(BGFX_BUILD_TOOLS OFF)
+	set(BGFX_AMALGAMATED ON)
+	set(BGFX_CONFIG_RENDERER_METAL ON)
+	set(BGFX_CONFIG_MULTITHREADED ON)
+
 	# set_target_properties(${PROJECT_NAME} PROPERTIES
 	# 	MACOSX_BUNDLE TRUE
 	# 	MACOSX_BUNDLE_GUI_IDENTIFIER "com.yourcompany.yourapp"
@@ -45,7 +54,12 @@ option(ENABLE_GESTURES "Enable gestures for desktop platforms" off)
 
 
 set(BGFX_CMAKE_DIR ${CMAKE_SOURCE_DIR}/../bgfx.cmake)
+if(BUILD_IOS)
+set(BGFX_CMAKE_INSTALl_DIR ${BGFX_CMAKE_DIR}/install_ios)
+else()
 set(BGFX_CMAKE_INSTALl_DIR ${BGFX_CMAKE_DIR}/install)
+endif(BUILD_IOS)
+message(BGFX_CMAKE_INSTALl_DIR...............${BGFX_CMAKE_INSTALl_DIR})
 set(BGFX_DIR ${BGFX_CMAKE_DIR}/bgfx)
 set(BIMG_DIR ${BGFX_CMAKE_DIR}/bimg)
 set(BX_DIR ${BGFX_CMAKE_DIR}/bx)
@@ -61,6 +75,8 @@ endif(WIN32)
 #get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin ABSOLUTE)
 #get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
 
+#add_subdirectory(${BGFX_CMAKE_DIR} bgfx.cmake)
+
 set( VERSION_MAJOR "00" )
 set( VERSION_MINOR "00" )
 set( VERSION_PATCH "00" )
@@ -72,8 +88,12 @@ if(WIN32)
 	get_filename_component(SHADERC ${BGFX_DIR}/.build/win64_${VS_VERSION}/bin/shadercDebug.exe ABSOLUTE)
 elseif(APPLE)
 	if(BUILD_IOS)
-		get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/ios-arm64/bin ABSOLUTE)
-		get_filename_component(SHADERC ${BGFX_DIR}/.build/osx-x64/bin/shadercDebug ABSOLUTE)
+		set(BGFX_LIB_DIR ${BGFX_CMAKE_INSTALl_DIR}/lib)
+		get_filename_component(SHADERC ${BGFX_CMAKE_INSTALl_DIR}/bin/shadercDebug ABSOLUTE)
+		#get_filename_component(BGFX_LIB_DIR ${BGFX_CMAKE_INSTALl_DIR}/)
+		#get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/ios-arm64/bin ABSOLUTE)
+		#get_filename_component(SHADERC ${BGFX_DIR}/.build/osx-x64/bin/shadercDebug ABSOLUTE)
+		#/Users/clint/Documents/code/bgfx.cmake/build_ios/cmake/bgfx/Release-iphonesimulator
 	else()
 		get_filename_component(BGFX_LIB_DIR ${BGFX_DIR}/.build/osx-x64/bin ABSOLUTE)
 		get_filename_component(SHADERC ${BGFX_DIR}/.build/osx-x64/bin/shadercDebug ABSOLUTE)
@@ -207,6 +227,7 @@ set(BGFX_INCLUDE_DIRS
 	${BX_DIR}/include
 )
 if(WIN32)
+	# TODO: change to install dir.
 	set(BGFX_LIBS
 		${BGFX_LIB_DIR}/bgfx$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
 		${BGFX_LIB_DIR}/bimg$<$<CONFIG:Debug>:Debug>$<$<CONFIG:Release>:Release>.lib
@@ -219,6 +240,7 @@ elseif(APPLE)
 		${BGFX_CMAKE_INSTALl_DIR}/lib/libbimg.a
 		${BGFX_CMAKE_INSTALl_DIR}/lib/libbx.a
 	)
+	message(BGFX_LIBS.........${BGFX_LIBS})
 endif(WIN32)
 
 #Shcore.lib?
@@ -538,9 +560,15 @@ if(APPLE)
 		target_link_libraries(${PROJECT_NAME} PUBLIC
 			"-framework UIKit"
 			"-framework Metal"
-			"-framework MetalKit" 
+			"-framework MetalKit"
 			"-framework QuartzCore"
 			"-framework Foundation"
+			"-framework AVFoundation"
+			"-framework CoreGraphics"
+			"-framework CoreVideo"
+			"-framework Photos"
+			"-framework MobileCoreServices"
+			"-framework Accelerate"
 		)
 	else()
 		target_link_libraries(${PROJECT_NAME} PUBLIC

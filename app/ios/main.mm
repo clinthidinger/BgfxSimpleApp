@@ -12,6 +12,8 @@
 //#include "BasicApp.h"
 #include "BgfxiOSApp.h"
 
+BgfxMain()
+
 /*
 int main(int argc, char * argv[]) 
 {

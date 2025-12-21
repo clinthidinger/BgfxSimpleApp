@@ -79,7 +79,7 @@
         
         //_bgfxApp = new BgfxApp( view.drawableSize.width, view.drawableSize.height, (__bridge void *)view.layer, (__bridge void *)view.device );
         auto *app = BgfxiOSAppLauncher::instance().getApp();
-        app->init( view.drawableSize.width, view.drawableSize.height, view.contentScaleFactor, (__bridge void *)view.layer, (__bridge void *)view.device, [self isPortrait] );
+        app->init( view.drawableSize.width, view.drawableSize.height, view.contentScaleFactor, (__bridge void *)view.layer, (__bridge void *)view.device);//!!!, [self isPortrait] );
         if (!app->enableAutoRefresh())
         {
             // Turn off auto redraw.  Do view.setNeedsDisplay() to refresh.

@@ -5,8 +5,9 @@
 class BgfxiOSApp : public IBgfxiOSApp
 {
 public:
-    
-    void init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait ) override;
+    void init( int width, int height, float scaleFactor, void *nwh, void *context ) override;//, bool isPortrait ) override;
+    //virtual void init( int width, int height, float scaleFactor, void *nwh, void *context ) = 0;
+    //void init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait ) override;
     void setRefreshFunc( const std::function<void()> &refreshFunc ) override;
     void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) override;
     void setAutoRefreshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) override;
@@ -25,6 +26,13 @@ public:
     void shutdown() override;
     bool enableAutoRefresh() override;
     
+    void handleKeyDown( int keyCode ) override;
+    void handleKeyUp( int keyCode ) override;
+    void handleMouseDown( float x, float y, int button ) override;
+    void handleMouseUp( float x, float y, int button ) override;
+    void handleMouseMove( float x, float y ) override;
+    void handleMouseWheel( float x, float y, float deltaX, float deltaY ) override;
+
     void handleChangeOrientation() override;
     void handleSwipe( float x, float y, int direction ) override;
     void handleSingleTap( float x, float y ) override;
@@ -51,10 +59,10 @@ public:
 };
 
 
-int BgfxiOSMain(); 
-
-#define BgfxMain( MyAppType ) int main( int argc, const char *argv[] ) \
+int BgfxiOSMain( int argc, char *argv[] );
+//!!! WHO
+#define BgfxMain() int main( int argc, char *argv[] ) \
 { \
-    BgfxiOSAppLauncher::instance().setApp( new MyAppType() ); \
-    return  BgfxiOSMain(argc, argv);\
+    BgfxiOSAppLauncher::instance().setApp( new BgfxiOSApp() ); \
+    return  BgfxiOSMain( argc, argv );\
 }

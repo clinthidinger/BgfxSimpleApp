@@ -26,7 +26,7 @@ public:
     };
     virtual ~IBgfxiOSApp() = default;
     
-    virtual void init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait ) = 0;
+    virtual void init( int width, int height, float scaleFactor, void *nwh, void *context ) = 0;//, bool isPortrait ) = 0;
     virtual void setRefreshFunc( const std::function<void()> &refreshFunc ) = 0;
     virtual void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) = 0;
     virtual void setAutoRefreshStateFunc( const std::function<void(bool)> &autoRefreshStateFunc ) = 0;

@@ -3,7 +3,7 @@
 
 //*
 //int BgfxiOSMain()
-int BgfxiOSMain(int argc, char * argv[])
+int BgfxiOSMain( int argc, char * argv[] )
 {
     NSString * appDelegateClassName;
     @autoreleasepool { //??? Do we need this with ARC???
@@ -17,7 +17,8 @@ int BgfxiOSMain(int argc, char * argv[])
 }
 //*/
 
-void BgfxiOSApp::init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait )
+//void BgfxiOSApp::init( int width, int height, float scaleFactor, void *nwh, void *context, bool isPortrait )
+void BgfxiOSApp::init( int width, int height, float scaleFactor, void *nwh, void *context )//, bool isPortrait )
 {
 
 }
@@ -79,7 +80,42 @@ void BgfxiOSApp::shutdown()
 
 }
 
-bool enableAutoRefresh()
+bool BgfxiOSApp::enableAutoRefresh()
+{
+
+}
+
+void BgfxiOSApp::handleKeyDown( int keyCode )
+{
+
+}
+
+void BgfxiOSApp::handleKeyUp( int keyCode )
+{
+
+}
+
+void BgfxiOSApp::handleMouseDown( float x, float y, int button )
+{
+
+}
+
+void BgfxiOSApp::handleMouseUp( float x, float y, int button )
+{
+
+}
+
+void BgfxiOSApp::handleMouseMove( float x, float y )
+{
+
+}
+
+void BgfxiOSApp::handleMouseWheel( float x, float y, float deltaX, float deltaY )
+{
+
+}
+
+void BgfxiOSApp::handleChangeOrientation()
 {
 
 }
