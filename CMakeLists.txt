@@ -453,6 +453,9 @@ if(APPLE)
 			app/ios/BasicAppBridge.h
 			app/ios/BasicAppBridge.mm
 
+			# iOS app interface
+			app/ios/IBgfxiOSApp.h
+
 			# Bridging header
 			app/ios/BgfxSimpleApp-Bridging-Header.h
 		)
@@ -519,6 +522,11 @@ if(APPLE AND BUILD_IOS)
 		MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0"
 		XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2"  # 2=iPad
 		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.yourcompany.bgfx-simple-app"
+
+		# Code signing for simulator
+		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
+		XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
+		XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ""
 
 		# Swift settings
 		XCODE_ATTRIBUTE_SWIFT_VERSION "5.0"

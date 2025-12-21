@@ -160,10 +160,16 @@ void BasicApp::handleMouseMove( float x, float y )
 
 #if defined(ENABLE_GESTURES) || defined(TARGET_OS_IPHONE)
 
-//void BasicApp::handleSwipe( float x, float y, int direction )
-//{
-//
-//}
+void BasicApp::handleChangeOrientation()
+{
+
+}
+
+void BasicApp::handleSwipe( float x, float y, int direction )
+{
+
+}
+
 void BasicApp::handleSingleTap( float x, float y )
 {
 
@@ -179,15 +185,107 @@ void BasicApp::handlePan( float x, float y, float translationX, float translatio
 
 }
 
-//void BasicApp::handlePinch( int type, float x, float y, float scale )
-//{
-//
-//}
-//
-//void BasicApp::handleRotation( float x, float y, float rotation )
-//{
-//
-//}
+void BasicApp::handlePinch( float x, float y, float scale )
+{
+
+}
+
+void BasicApp::handleRotation( float x, float y, float rotation )
+{
+
+}
+
+// iOS-specific input handlers
+void BasicApp::handleKeyDown( int keyCode )
+{
+
+}
+
+void BasicApp::handleKeyUp( int keyCode )
+{
+
+}
+
+void BasicApp::handleMouseDown( float x, float y, int button )
+{
+
+}
+
+void BasicApp::handleMouseUp( float x, float y, int button )
+{
+
+}
+
+void BasicApp::handleMouseMove( float x, float y )
+{
+
+}
+
+void BasicApp::handleMouseWheel( float x, float y, float deltaX, float deltaY )
+{
+
+}
+
+// iOS lifecycle methods
+void BasicApp::viewDidLoad()
+{
+
+}
+
+void BasicApp::viewWillAppear()
+{
+
+}
+
+void BasicApp::viewWillDisappear()
+{
+
+}
+
+void BasicApp::viewDidDisappear()
+{
+
+}
+
+void BasicApp::viewWillTransitionToSize()
+{
+
+}
+
+void BasicApp::viewDidLayoutSubviews()
+{
+
+}
+
+void BasicApp::applicationDidBecomeActive()
+{
+
+}
+
+void BasicApp::applicationWillResignActive()
+{
+
+}
+
+void BasicApp::applicationDidEnterBackground()
+{
+
+}
+
+void BasicApp::applicationWillEnterForeground()
+{
+
+}
+
+void BasicApp::applicationDidFinishLaunching()
+{
+
+}
+
+void BasicApp::didReceivememoryWarning()
+{
+
+}
 
 #endif
 
@@ -233,6 +331,11 @@ void BasicApp::setRefreshFunc( const std::function<void()>& refreshFunc )
 void BasicApp::setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc )
 {
     mAutoRefreshStateFunc = autoRefreshStateFunc;
+}
+
+void BasicApp::setEnableIndicatorFunc( const std::function<void( bool )> &enableIndicatorFunc )
+{
+
 }
 
 #ifdef __APPLE__

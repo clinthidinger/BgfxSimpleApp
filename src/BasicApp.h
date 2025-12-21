@@ -20,8 +20,9 @@
 #ifdef __APPLE__
 #include <TargetConditionals.h>
     #if TARGET_OS_IPHONE
-        // SwiftUI handles app lifecycle on iOS - no base class needed
-        #define BGFX_BASE_APP_DEFINED 0
+        #include "app/ios/IBgfxiOSApp.h"
+        #define BGFX_BASE_APP IBgfxiOSApp
+        #define BGFX_BASE_APP_DEFINED 1
     #elif TARGET_OS_MAC
         #include "app/osx/IBgfxOSXApp.h"
         #define BGFX_BASE_APP IBgfxOSXApp
@@ -50,7 +51,7 @@ public:
     void setRefreshFunc( const std::function<void()>& refreshFunc ) OVERRIDE;
     void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) OVERRIDE;
     void setAutoRefreshStateFunc( const std::function<void( bool )>& autoRefreshStateFunc ) OVERRIDE;
-    //void setRefreshAtTimeFunc( const std::function<void(float)> &refreshFunc ) OVERRIDE;
+    void setEnableIndicatorFunc( const std::function<void( bool )> &enableIndicatorFunc ) OVERRIDE;
 
 #if !defined(TARGET_OS_IPHONE) // WHat if you they hoooked up a keyboard and mouse to iPad???
     void handleKeyDown( uint16_t key, int keyMods ) OVERRIDE;
@@ -71,13 +72,35 @@ public:
 #ifdef __APPLE__
 
 #if defined(ENABLE_GESTURES) || defined(TARGET_OS_IPHONE)
-    //void handleSwipe( float x, float y, int direction ) OVERRIDE;
+    void handleChangeOrientation() OVERRIDE;
+    void handleSwipe( float x, float y, int direction ) OVERRIDE;
     void handleSingleTap( float x, float y ) OVERRIDE;
     void handleDoubleTap( float x, float y ) OVERRIDE;
     void handlePan( float x, float y, float translationX, float translationY, float velocityX, float velocityY, int numTouches ) OVERRIDE;
-    // int type ???
-    //void handlePinch( float x, float y, float scale ) OVERRIDE;
-    //void handleRotation( float x, float y, float rotation ) OVERRIDE;
+    void handlePinch( float x, float y, float scale ) OVERRIDE;
+    void handleRotation( float x, float y, float rotation ) OVERRIDE;
+
+    // iOS-specific input handlers (different signatures than desktop)
+    void handleKeyDown( int keyCode ) OVERRIDE;
+    void handleKeyUp( int keyCode ) OVERRIDE;
+    void handleMouseDown( float x, float y, int button ) OVERRIDE;
+    void handleMouseUp( float x, float y, int button ) OVERRIDE;
+    void handleMouseMove( float x, float y ) OVERRIDE;
+    void handleMouseWheel( float x, float y, float deltaX, float deltaY ) OVERRIDE;
+
+    // iOS lifecycle methods
+    void viewDidLoad() OVERRIDE;
+    void viewWillAppear() OVERRIDE;
+    void viewWillDisappear() OVERRIDE;
+    void viewDidDisappear() OVERRIDE;
+    void viewWillTransitionToSize() OVERRIDE;
+    void viewDidLayoutSubviews() OVERRIDE;
+    void applicationDidBecomeActive() OVERRIDE;
+    void applicationWillResignActive() OVERRIDE;
+    void applicationDidEnterBackground() OVERRIDE;
+    void applicationWillEnterForeground() OVERRIDE;
+    void applicationDidFinishLaunching() OVERRIDE;
+    void didReceivememoryWarning() OVERRIDE;
 #endif
     
 //    void didFinishLaunching() OVERRIDE;
