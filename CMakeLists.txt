@@ -523,6 +523,10 @@ if(APPLE AND BUILD_IOS)
 		XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "2"  # 2=iPad
 		XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "com.yourcompany.bgfx-simple-app"
 
+		# Force landscape orientation only
+		XCODE_ATTRIBUTE_INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+		XCODE_ATTRIBUTE_INFOPLIST_KEY_UIRequiresFullScreen "YES"
+
 		# Code signing for simulator
 		XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "Apple Development"
 		XCODE_ATTRIBUTE_CODE_SIGN_STYLE "Automatic"
